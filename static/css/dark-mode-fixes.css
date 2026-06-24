@@ -295,3 +295,78 @@ body.dark .health-score-number, body.dark-mode .health-score-number {
 body.dark .health-grade, body.dark-mode .health-grade {
     color: #cbd5e1 !important;
 }
+
+/* =============================================================
+   8. INDEX PAGES (EXPENSES & INCOME LISTS) & FORM FIXES
+   ============================================================= */
+
+/* Table Specifics for dark mode on index pages */
+body.dark .expenses-table,
+body.dark-mode .expenses-table {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.dark .expenses-table thead tr.sort-row th,
+body.dark-mode .expenses-table thead tr.sort-row th {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+body.dark .expenses-table tbody tr:hover,
+body.dark-mode .expenses-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: #f8fafc !important;
+}
+
+body.dark .expenses-table tbody tr:hover td,
+body.dark-mode .expenses-table tbody tr:hover td {
+    color: #f8fafc !important;
+}
+
+/* Pagination styling in dark mode */
+body.dark .page-link,
+body.dark-mode .page-link {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #3b82f6 !important;
+}
+
+body.dark .page-item.active .page-link,
+body.dark-mode .page-item.active .page-link {
+    background-color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+body.dark .page-item.disabled .page-link,
+body.dark-mode .page-item.disabled .page-link {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #475569 !important;
+}
+
+/* Form Container Controls Overrides (Add/Edit Expense/Income Pages) */
+body.dark .container .form-control,
+body.dark .container .form-select,
+body.dark-mode .container .form-control,
+body.dark-mode .container .form-select {
+    color: #f1f5f9 !important;
+    background-color: #1e293b !important;
+    border: 2px solid #334155 !important;
+}
+
+body.dark .container .form-control:focus,
+body.dark .container .form-select:focus,
+body.dark-mode .container .form-control:focus,
+body.dark-mode .container .form-select:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+body.dark .container .card-body label,
+body.dark-mode .container .card-body label,
+body.dark .container .form-label,
+body.dark-mode .container .form-label {
+    color: #cbd5e1 !important;
+}

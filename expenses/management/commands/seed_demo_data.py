@@ -9,8 +9,10 @@ from django.utils import timezone
 from expenses.models import Expense, Category, ExpenseLimit
 from userincome.models import UserIncome, Source
 from goals.models import Goal
-from bank_simulator.models import BankAccount, BankTransaction, Card, Budget
+from bank_simulator.models import BankAccount, BankTransaction, Card, CardTransaction, Alert, Beneficiary, TransferRequest, TransactionStatus, Budget
 from debts.models import Debt, EMIPayment
+from userprofile.models import UserProfile
+from userpreferences.models import UserPreference
 
 class Command(BaseCommand):
     help = 'Seed realistic financial mock data for the demo user spanning 6 months.'
@@ -32,9 +34,29 @@ class Command(BaseCommand):
             user.save()
             self.stdout.write(f"Created user '{demo_username}'")
         else:
-            self.stdout.write(f"User '{demo_username}' already exists. Re-seeding data for this user...")
+            self.stdout.write(f"User '{demo_username}' already exists. Re-seeding data...")
 
-        # 2. Clear existing demo data to ensure idempotency
+        self.seed_user_data(user)
+        self.stdout.write(self.style.SUCCESS("Successfully seeded all demo data!"))
+
+    def seed_user_data(self, user):
+        # Disconnect signals to prevent auto-creating duplicate expenses/incomes/alerts
+        from django.db.models.signals import post_save, post_delete
+        from bank_simulator.signals import (
+            handle_card_transaction,
+            sync_bank_with_expense_income,
+            handle_transfer_request_status,
+            delete_linked_expense_income,
+            delete_linked_expense_from_card
+        )
+        
+        post_save.disconnect(handle_card_transaction, sender=CardTransaction)
+        post_save.disconnect(sync_bank_with_expense_income, sender=BankTransaction)
+        post_save.disconnect(handle_transfer_request_status, sender=TransferRequest)
+        post_delete.disconnect(delete_linked_expense_income, sender=BankTransaction)
+        post_delete.disconnect(delete_linked_expense_from_card, sender=CardTransaction)
+
+        # Clear existing data for user to ensure idempotency
         Expense.objects.filter(owner=user).delete()
         Category.objects.filter(owner=user).delete()
         ExpenseLimit.objects.filter(owner=user).delete()
@@ -44,12 +66,28 @@ class Command(BaseCommand):
         BankAccount.objects.filter(user=user).delete()
         BankTransaction.objects.filter(user=user).delete()
         Card.objects.filter(user=user).delete()
+        CardTransaction.objects.filter(user=user).delete()
+        Alert.objects.filter(user=user).delete()
+        Beneficiary.objects.filter(user=user).delete()
+        TransferRequest.objects.filter(sender=user).delete()
         Budget.objects.filter(user=user).delete()
         Debt.objects.filter(owner=user).delete()
+        
+        # UserProfile & UserPreference
+        UserProfile.objects.get_or_create(user=user)
+        pref, created_pref = UserPreference.objects.get_or_create(user=user, defaults={
+            "currency": "INR - Indian Rupee",
+            "timezone": "Asia/Kolkata",
+            "daily_summary_enabled": True
+        })
+        if not created_pref:
+            pref.currency = "INR - Indian Rupee"
+            pref.timezone = "Asia/Kolkata"
+            pref.save()
 
-        self.stdout.write("Cleared existing records for user 'demo'.")
+        self.stdout.write(f"Cleared existing records and initialized preferences for user '{user.username}'.")
 
-        # 3. Create Categories for Expense
+        # Create Categories for Expense
         categories_data = [
             {"name": "Food", "color": "#FFC107", "budget_limit": 12000, "icon": "fa-utensils"},
             {"name": "Transportation", "color": "#03A9F4", "budget_limit": 4000, "icon": "fa-car"},
@@ -73,7 +111,7 @@ class Command(BaseCommand):
             )
             categories[cat_info["name"]] = cat
 
-        # 4. Create Sources for Income
+        # Create Sources for Income
         sources_data = [
             {"name": "Salary", "color": "#1CC88A", "icon": "fa-wallet"},
             {"name": "Freelancing", "color": "#36B9CC", "icon": "fa-laptop-code"},
@@ -92,11 +130,11 @@ class Command(BaseCommand):
             )
             sources[src_info["name"]] = src
 
-        # 5. Define Dates (Spread over last 6 months)
+        # Define Dates
         today = date.today()
         start_date = today - timedelta(days=180)
 
-        # 6. Generate Income (Exactly 60 transactions)
+        # Generate Income (Exactly 60 transactions)
         incomes = []
         
         # Monthly Salary: 6 times
@@ -182,7 +220,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Generated {len(incomes)} income transactions.")
 
-        # 7. Generate Expenses (Exactly 240 transactions)
+        # Generate Expenses (Exactly 240 transactions)
         expenses = []
 
         # Rent: 6 times
@@ -316,14 +354,19 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Generated {len(expenses)} expense transactions.")
 
-        # 8. Seed Bank Accounts & Cards
-        bank_acc = BankAccount.objects.create(
+        # Seed Bank Accounts & Cards
+        bank_acc, created_acc = BankAccount.objects.get_or_create(
             user=user,
-            account_number="100987654321",
-            balance=Decimal("250000.00")  # Starting balance
+            defaults={
+                "account_number": "100987654321",
+                "balance": Decimal("250000.00")
+            }
         )
+        if not created_acc:
+            bank_acc.account_number = "100987654321"
+            bank_acc.balance = Decimal("250000.00")
+            bank_acc.save()
 
-        # Create realistic cards
         card_credit = Card.objects.create(
             user=user,
             card_name="HDFC Credit Card",
@@ -351,19 +394,150 @@ class Command(BaseCommand):
             cvv="456"
         )
 
-        # Generate Bank Transactions (Synchronized with Expense/Income entries)
-        running_balance = Decimal("250000.00")
+        # Generate HDFC Credit Card Transactions
+        card_tx_templates = [
+            {"merchant": "Netflix", "amount_range": (649, 649), "category": "Entertainment", "is_rec": True, "desc": "Netflix monthly Premium plan"},
+            {"merchant": "Spotify", "amount_range": (119, 119), "category": "Entertainment", "is_rec": True, "desc": "Spotify Premium Individual"},
+            {"merchant": "Amazon Prime", "amount_range": (179, 179), "category": "Entertainment", "is_rec": True, "desc": "Amazon Prime subscription"},
+            {"merchant": "Amazon.in", "amount_range": (800, 5000), "category": "Shopping", "is_rec": False, "desc": "Online shopping purchase"},
+            {"merchant": "Flipkart", "amount_range": (1500, 8000), "category": "Shopping", "is_rec": False, "desc": "Electronics purchase"},
+            {"merchant": "Zomato", "amount_range": (200, 1200), "category": "Food", "is_rec": False, "desc": "Food delivery service"},
+            {"merchant": "Swiggy", "amount_range": (250, 1500), "category": "Food", "is_rec": False, "desc": "Food delivery service"},
+            {"merchant": "Uber", "amount_range": (150, 800), "category": "Transportation", "is_rec": False, "desc": "Cab ride"},
+            {"merchant": "Shell Fuel", "amount_range": (1000, 3000), "category": "Transportation", "is_rec": False, "desc": "Vehicle fuel recharge"},
+            {"merchant": "Apple Store", "amount_range": (5000, 15000), "category": "Shopping", "is_rec": False, "desc": "Accessories purchase"},
+        ]
+
+        card_transactions_to_create = []
+        for i in range(6):
+            sub_date = start_date + timedelta(days=i*30 + 15)
+            for sub_name, amt, desc in [("Netflix", 649, "Netflix monthly Premium plan"), ("Spotify", 119, "Spotify Premium Individual"), ("Amazon Prime", 179, "Amazon Prime subscription")]:
+                card_transactions_to_create.append({
+                    "card": card_credit,
+                    "user": user,
+                    "amount": Decimal(str(amt)),
+                    "description": desc,
+                    "merchant_name": sub_name,
+                    "category": "Entertainment",
+                    "transaction_date": sub_date,
+                    "is_recurring": True,
+                    "source_type": "AUTO_SYNC"
+                })
+
+        for _ in range(25):
+            tx_template = random.choice([t for t in card_tx_templates if not t["is_rec"]])
+            random_days = random.randint(1, 180)
+            tx_date = start_date + timedelta(days=random_days)
+            amount = round(random.uniform(tx_template["amount_range"][0], tx_template["amount_range"][1]), 2)
+            card_transactions_to_create.append({
+                "card": card_credit,
+                "user": user,
+                "amount": Decimal(str(amount)),
+                "description": tx_template["desc"],
+                "merchant_name": tx_template["merchant"],
+                "category": tx_template["category"],
+                "transaction_date": tx_date,
+                "is_recurring": False,
+                "source_type": "MANUAL"
+            })
+
+        card_transactions_to_create.sort(key=lambda x: x["transaction_date"])
+        for tx_data in card_transactions_to_create:
+            CardTransaction.objects.create(**tx_data)
         
-        # Sort all transactions chronologically to calculate running balance correctly
+        self.stdout.write(f"Generated {len(card_transactions_to_create)} credit card transactions.")
+
+        # Seed Beneficiaries and TransferRequests
+        beneficiaries_data = [
+            {"name": "Rajesh Kumar", "account_number": "", "ifsc_code": "", "upi_id": "rajesh@okaxis", "phone": "9876543210"},
+            {"name": "Aarav Sharma", "account_number": "501002345678", "ifsc_code": "HDFC0000123", "upi_id": ""},
+            {"name": "Priya Patel", "account_number": "", "ifsc_code": "", "upi_id": "priya@okicici"},
+        ]
+
+        beneficiaries = {}
+        for b_info in beneficiaries_data:
+            beneficiary = Beneficiary.objects.create(
+                user=user,
+                name=b_info["name"],
+                account_number=b_info.get("account_number", ""),
+                ifsc_code=b_info.get("ifsc_code", ""),
+                upi_id=b_info.get("upi_id", ""),
+                phone=b_info.get("phone", ""),
+                is_verified=True,
+                is_active=True
+            )
+            beneficiaries[b_info["name"]] = beneficiary
+
+        transfer_templates = [
+            {"ben_name": "Rajesh Kumar", "amount": 1500, "note": "Dinner share", "type": "BENEFICIARY", "status": "SUCCESS"},
+            {"ben_name": "Aarav Sharma", "amount": 5000, "note": "Rent deposit share", "type": "BENEFICIARY", "status": "SUCCESS"},
+            {"ben_name": "Priya Patel", "amount": 2000, "note": "Birthday gift contribution", "type": "BENEFICIARY", "status": "SUCCESS"},
+            {"ben_name": "", "amount": 1200, "note": "Broadband wifi internet", "type": "ACCOUNT", "status": "SUCCESS", "rec_acc": "9988776655", "rec_name": "Internet Service Provider", "rec_ifsc": "UTIB0000004"},
+            {"ben_name": "Rajesh Kumar", "amount": 10000, "note": "Urgent emergency cash loan", "type": "BENEFICIARY", "status": "FAILED", "fail_reason": "Insufficient balance in linked account"},
+        ]
+
+        transfers = []
+        for idx, t_temp in enumerate(transfer_templates):
+            tx_id = f"TXN1000000{idx+1}"
+            random_days = random.randint(1, 150)
+            t_date = start_date + timedelta(days=random_days)
+            
+            transfer = TransferRequest.objects.create(
+                transaction_id=tx_id,
+                sender=user,
+                beneficiary=beneficiaries.get(t_temp["ben_name"]) if t_temp["ben_name"] else None,
+                amount=Decimal(str(t_temp["amount"])),
+                note=t_temp["note"],
+                transfer_type=t_temp["type"],
+                receiver_account=t_temp.get("rec_acc", ""),
+                receiver_name=t_temp.get("rec_name", ""),
+                receiver_ifsc=t_temp.get("rec_ifsc", ""),
+                status=t_temp["status"],
+                pin_verified=True,
+                otp_verified=True,
+                failure_reason=t_temp.get("fail_reason", ""),
+                created_at=timezone.make_aware(datetime.combine(t_date, datetime.min.time()))
+            )
+            
+            TransactionStatus.objects.create(
+                transfer=transfer,
+                status="PENDING",
+                status_message="Transfer request initiated"
+            )
+            TransactionStatus.objects.create(
+                transfer=transfer,
+                status="PROCESSING",
+                status_message="Processing transaction with network partner"
+            )
+            if t_temp["status"] == "SUCCESS":
+                TransactionStatus.objects.create(
+                    transfer=transfer,
+                    status="SUCCESS",
+                    status_message="Funds settled successfully to payee"
+                )
+            else:
+                TransactionStatus.objects.create(
+                    transfer=transfer,
+                    status="FAILED",
+                    status_message=f"Transaction failed: {t_temp.get('fail_reason')}"
+                )
+            transfers.append(transfer)
+
+        # Generate Bank Transactions (Synchronized with Expense, Income & Transfers)
+        running_balance = Decimal("250000.00")
         all_tx = []
         for inc in incomes:
-            all_tx.append({"type": "CREDIT", "amount": Decimal(str(inc.amount)), "date": inc.date, "desc": inc.description, "src": inc.source, "cat": "", "id": inc.id, "is_inc": True})
+            all_tx.append({"type": "CREDIT", "amount": Decimal(str(inc.amount)), "date": inc.date, "desc": inc.description, "src": inc.source, "cat": "", "id": inc.id, "is_inc": True, "is_trsf": False})
         for exp in expenses:
-            all_tx.append({"type": "DEBIT", "amount": Decimal(str(exp.amount)), "date": exp.date, "desc": exp.description, "src": "", "cat": exp.category, "id": exp.id, "is_inc": False})
-            
+            all_tx.append({"type": "DEBIT", "amount": Decimal(str(exp.amount)), "date": exp.date, "desc": exp.description, "src": "", "cat": exp.category, "id": exp.id, "is_inc": False, "is_trsf": False})
+        for trsf in transfers:
+            if trsf.status == "SUCCESS":
+                t_date = trsf.created_at.date()
+                desc = f"Transfer to {trsf.beneficiary.name if trsf.beneficiary else trsf.receiver_name}"
+                all_tx.append({"type": "DEBIT", "amount": trsf.amount, "date": t_date, "desc": desc, "src": "", "cat": "Money Transfer", "id": trsf.id, "is_inc": False, "is_trsf": True})
+                
         all_tx.sort(key=lambda x: x["date"])
 
-        # Create transactions
         for tx in all_tx:
             if tx["type"] == "CREDIT":
                 running_balance += tx["amount"]
@@ -378,6 +552,8 @@ class Command(BaseCommand):
                 )
             else:
                 running_balance -= tx["amount"]
+                linked_exp = tx["id"] if not tx["is_trsf"] else None
+                
                 BankTransaction.objects.create(
                     user=user,
                     amount=tx["amount"],
@@ -385,15 +561,62 @@ class Command(BaseCommand):
                     description=tx["desc"],
                     category=tx["cat"],
                     balance_after=running_balance,
-                    linked_expense_id=tx["id"]
+                    linked_expense_id=linked_exp
                 )
+                
+                if tx["is_trsf"]:
+                    trsf_obj = TransferRequest.objects.get(id=tx["id"])
+                    trsf_obj.balance_before = running_balance + tx["amount"]
+                    trsf_obj.balance_after = running_balance
+                    trsf_obj.save()
                 
         # Sync final account balance
         bank_acc.balance = running_balance
         bank_acc.save()
         self.stdout.write("Created BankAccount and synchronized transactions.")
 
-        # 9. Create Financial Goals
+        # Seed Alerts
+        Alert.objects.create(
+            user=user,
+            alert_type="LOW_BALANCE",
+            priority="HIGH",
+            title="Low Bank Balance Alert",
+            message=f"Your main bank account balance has dropped below your threshold of ₹10,000. Current balance: ₹{running_balance:,.2f}.",
+            is_read=False,
+            is_dismissed=False
+        )
+        Alert.objects.create(
+            user=user,
+            alert_type="CREDIT_LIMIT",
+            priority="CRITICAL",
+            title="Credit Limit Threshold Crossed",
+            message="Your spending on HDFC Credit Card has crossed 80% of your credit limit. Current utilization: 82.3%.",
+            is_read=False,
+            is_dismissed=False
+        )
+        random_card_tx = CardTransaction.objects.filter(user=user, amount__gte=2000).first()
+        Alert.objects.create(
+            user=user,
+            alert_type="LARGE_TRANSACTION",
+            priority="MEDIUM",
+            title="Unusual Large Transaction Detected",
+            message=f"A transaction of ₹{random_card_tx.amount if random_card_tx else 12000} at {random_card_tx.merchant_name if random_card_tx else 'Apple Store'} was recorded on your credit card.",
+            related_card_transaction=random_card_tx,
+            is_read=True,
+            is_dismissed=False
+        )
+        Alert.objects.create(
+            user=user,
+            alert_type="RECURRING_RENEWAL",
+            priority="LOW",
+            title="Subscription Renewal Notification",
+            message="Your Netflix subscription renewal of ₹649 is scheduled for tomorrow.",
+            is_read=True,
+            is_dismissed=False
+        )
+        self.stdout.write("Created smart alerts.")
+
+        # Create Financial Goals
         Goal.objects.create(
             name="Emergency Fund",
             owner=user,
@@ -424,19 +647,16 @@ class Command(BaseCommand):
             status=Goal.STATUS_ACTIVE,
             is_achieved=False
         )
-
         self.stdout.write("Created financial goals.")
 
-        # 10. Create Budgets for Current Month
+        # Create Budgets for Current Month
         start_of_month = today.replace(day=1)
-        # End of current month
         if today.month == 12:
             end_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
         else:
             end_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
 
         for cat_info in categories_data:
-            # Calculate spent amount this month
             spent_amt = sum(e.amount for e in expenses if e.category == cat_info["name"] and e.date >= start_of_month and e.date <= today)
             Budget.objects.create(
                 user=user,
@@ -447,11 +667,10 @@ class Command(BaseCommand):
                 period_end=end_of_month,
                 is_active=True
             )
-            
         self.stdout.write("Created monthly budgets for the current month.")
 
-        # 11. Create Debts (Loans)
-        Debt.objects.create(
+        # Create Debts (Loans)
+        car_loan = Debt.objects.create(
             owner=user,
             loan_name="Car Loan",
             loan_type=Debt.LOAN_CAR,
@@ -463,9 +682,10 @@ class Command(BaseCommand):
             end_date=today + timedelta(days=900),
             next_emi_date=today + timedelta(days=10),
             lender_name="HDFC Auto Finance",
-            account_number="LA9876543210"
+            account_number="LA9876543210",
+            status=Debt.STATUS_ACTIVE
         )
-        Debt.objects.create(
+        laptop_emi = Debt.objects.create(
             owner=user,
             loan_name="Laptop Purchase Credit Card EMI",
             loan_type=Debt.LOAN_CREDIT_CARD,
@@ -477,8 +697,24 @@ class Command(BaseCommand):
             end_date=today + timedelta(days=270),
             next_emi_date=today + timedelta(days=15),
             lender_name="SBI Credit Card Division",
-            account_number="CC09876543"
+            account_number="CC09876543",
+            status=Debt.STATUS_ACTIVE
         )
 
-        self.stdout.write("Created debts/loans.")
-        self.stdout.write(self.style.SUCCESS("Successfully seeded all demo data!"))
+        for debt in [car_loan, laptop_emi]:
+            schedule = debt.calculate_amortization_schedule()
+            for item in schedule:
+                due_date = debt.start_date + timedelta(days=30 * item['month'])
+                is_paid = due_date < today
+                paid_date = due_date if is_paid else None
+                EMIPayment.objects.create(
+                    debt=debt,
+                    due_date=due_date,
+                    amount=Decimal(str(item['emi'])),
+                    principal_portion=Decimal(str(item['principal'])),
+                    interest_portion=Decimal(str(item['interest'])),
+                    balance_after=Decimal(str(item['balance'])),
+                    is_paid=is_paid,
+                    paid_date=paid_date
+                )
+        self.stdout.write("Created debts/loans with complete EMI schedules.")
