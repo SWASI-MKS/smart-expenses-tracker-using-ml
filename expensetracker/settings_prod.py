@@ -8,29 +8,46 @@ Import from base.py and override for production.
 from .settings import *  # noqa: F401, F403
 
 # Override debug for production
-DEBUG = False
+import os
 
-# Security settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+
+# Security settings (only enforce SSL redirect if not in debug mode/local testing)
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Allowed hosts - configure for production
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.yourdomain.com']
+# Allow loading secret key from environment
+SECRET_KEY = os.getenv('SECRET_KEY', SECRET_KEY)
 
-# Database - use environment variables
-import os
+# Allowed hosts - configure for production
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://*.railway.app,https://*.up.railway.app,http://localhost:8000,http://127.0.0.1:8000'
+).split(',')
+
+# Database - use environment variables for Railway / production
+DB_ENGINE = os.getenv('DATABASE_ENGINE', 'django.db.backends.mysql')
+DB_NAME = os.getenv('MYSQLDATABASE', os.getenv('DATABASE_NAME', 'expensetracker_db'))
+DB_USER = os.getenv('MYSQLUSER', os.getenv('DATABASE_USER', 'root'))
+DB_PASSWORD = os.getenv('MYSQLPASSWORD', os.getenv('DATABASE_PASSWORD', ''))
+DB_HOST = os.getenv('MYSQLHOST', os.getenv('DATABASE_HOST', '127.0.0.1'))
+DB_PORT = os.getenv('MYSQLPORT', os.getenv('DATABASE_PORT', '3306'))
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'expensetracker_db',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
@@ -65,15 +82,29 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@yourdomain.com')
 
-# Static files
+# Static files configuration (using WhiteNoise)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Inject WhiteNoise middleware right after SecurityMiddleware
+if 'django.middleware.security.SecurityMiddleware' in MIDDLEWARE:
+    idx = MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
+    MIDDLEWARE.insert(idx + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+else:
+    MIDDLEWARE.insert(0, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Insert runserver_nostatic to INSTALLED_APPS for better control in dev if needed
+if 'whitenoise.runserver_nostatic' not in INSTALLED_APPS:
+    INSTALLED_APPS.insert(0, 'whitenoise.runserver_nostatic')
+
+# Optimize static files storage with compression and caching
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Logging - More verbose for production
+# Logging - More verbose for production, output to console for container output capture
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -90,22 +121,17 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': '/var/log/django/expense_tracker.log',
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'services': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
