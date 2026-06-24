@@ -1,359 +1,297 @@
 /*
-  DARK MODE TEXT VISIBILITY FIXES v2.0
-  =========================================
-  Fixed CSS syntax errors. Nested selectors converted to descendant selectors.
+  =============================================================
+  PROFESSIONAL FINTECH DARK MODE & LIGHT MODE VISIBILITY FIXES
+  =============================================================
+  Ensures absolute text legibility and clean contrast in both modes.
+  Supports both 'body.dark' and 'body.dark-mode' classes.
+  =============================================================
 */
 
-body.dark .text-muted,
-body.dark .text-secondary,
-body.dark-mode .text-muted,
-body.dark-mode .text-secondary {
-    color: #cbd5e1 !important;
+/* =============================================================
+   1. GLOBAL VARIABLES & OVERRIDES
+   ============================================================= */
+
+/* Dark Mode Tokens */
+body.dark, body.dark-mode {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --input-bg: #1e293b;
+    --input-border: #334155;
+    --input-text: #f8fafc;
+    
+    background-color: var(--bg-color) !important;
+    color: var(--text-main) !important;
 }
 
-body.dark .card small,
-body.dark .card .text-muted,
-body.dark .card p.text-muted,
-body.dark .card small.text-muted,
-body.dark .card label,
-body.dark .card .card-title,
-body.dark .card .card-subtitle,
-body.dark-mode .card small,
-body.dark-mode .card .text-muted,
-body.dark-mode .card p.text-muted,
-body.dark-mode .card small.text-muted,
-body.dark-mode .card label,
-body.dark-mode .card .card-title,
-body.dark-mode .card .card-subtitle {
+/* Ensure the layout wrapper content gets correct dark backgrounds */
+body.dark .content,
+body.dark-mode .content {
+    background-color: var(--bg-color) !important;
+}
+
+/* =============================================================
+   2. TEXT & CONTRAST VISIBILITY IN DARK MODE
+   ============================================================= */
+
+/* Main Text & Headings */
+body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6,
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark .card-title, body.dark-mode .card-title,
+body.dark .card-subtitle, body.dark-mode .card-subtitle,
+body.dark .modal-title, body.dark-mode .modal-title {
+    color: #f8fafc !important;
+}
+
+/* Paragraphs & Core Spans */
+body.dark p, body.dark span:not(.badge):not(.fa):not(.fas),
+body.dark-mode p, body.dark-mode span:not(.badge):not(.fa):not(.fas) {
     color: #e2e8f0 !important;
 }
 
-body.dark .card h3,
-body.dark .card h5,
-body.dark .card .fw-bold,
-body.dark .card-amount,
-body.dark .amount-card,
-body.dark-mode .card h3,
-body.dark-mode .card h5,
-body.dark-mode .card .fw-bold,
-body.dark-mode .card-amount,
-body.dark-mode .amount-card {
-    color: #f1f5f9 !important;
-}
-
-body.dark small.fw-bold.text-muted,
-body.dark [class*=\"Saved\"],
-body.dark [class*=\"Target\"],
-body.dark [class*=\"Time left\"],
-body.dark .progress-container small,
-body.dark .summary-label,
-body.dark-mode small.fw-bold.text-muted,
-body.dark-mode [class*=\"Saved\"],
-body.dark-mode [class*=\"Target\"],
-body.dark-mode [class*=\"Time left\"],
-body.dark-mode .progress-container small,
-body.dark-mode .summary-label {
+/* Secondary & Muted Texts */
+body.dark .text-muted, body.dark p.text-muted, body.dark small.text-muted,
+body.dark-mode .text-muted, body.dark-mode p.text-muted, body.dark-mode small.text-muted,
+body.dark .text-secondary, body.dark small.text-secondary,
+body.dark-mode .text-secondary, body.dark-mode small.text-secondary {
     color: #94a3b8 !important;
 }
 
-body.dark .table,
-body.dark .table th,
-body.dark .table td,
-body.dark .table small,
-body.dark-mode .table,
-body.dark-mode .table th,
-body.dark-mode .table td,
-body.dark-mode .table small {
-    color: #e2e8f0 !important;
-}
-
-body.dark .table .text-muted,
-body.dark-mode .table .text-muted {
-    color: #94a3b8 !important;
-}
-
-body.dark .badge.text-secondary,
-body.dark .badge.bg-secondary-light,
-body.dark-mode .badge.text-secondary,
-body.dark-mode .badge.bg-secondary-light {
+/* KPI Labels */
+body.dark .summary-label, body.dark-mode .summary-label,
+body.dark .live-category, body.dark-mode .live-category,
+body.dark .bar-live-category, body.dark-mode .bar-live-category {
     color: #cbd5e1 !important;
 }
 
-body.dark .form-label,
-body.dark .form-control::placeholder,
-body.dark-mode .form-label,
-body.dark-mode .form-control::placeholder {
+/* Amounts & Metrics */
+body.dark .card-amount, body.dark-mode .card-amount,
+body.dark .amount-card, body.dark-mode .amount-card,
+body.dark .live-amount, body.dark-mode .live-amount {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* Un-escaped attribute selectors for clean UI values */
+body.dark [class*="Saved"], body.dark-mode [class*="Saved"],
+body.dark [class*="Target"], body.dark-mode [class*="Target"],
+body.dark [class*="Time left"], body.dark-mode [class*="Time left"] {
     color: #cbd5e1 !important;
 }
 
-body.dark #customLegend .legend-item,
-body.dark-mode #customLegend .legend-item {
-    color: #e2e8f0 !important;
+/* =============================================================
+   3. COMPONENTS & CARDS
+   ============================================================= */
+
+/* Card styling in Dark Mode */
+body.dark .card, body.dark-mode .card,
+body.dark .kpi-card, body.dark-mode .kpi-card,
+body.dark .dashboard-card, body.dark-mode .dashboard-card,
+body.dark .health-score-card, body.dark-mode .health-score-card {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+    background-image: none !important; /* Kill any static gradients */
 }
 
-body.dark .live-info-box,
-body.dark .bar-live-info-box,
-body.dark-mode .live-info-box,
-body.dark-mode .bar-live-info-box {
-    color: #f1f5f9 !important;
-}
-
-body.dark .live-category,
-body.dark .bar-live-category,
-body.dark-mode .live-category,
-body.dark-mode .bar-live-category {
-    color: #e2e8f0 !important;
-}
-
-body.dark .summary-card .card-title,
-body.dark .summary-card .card-subtitle,
-body.dark-mode .summary-card .card-title,
-body.dark-mode .summary-card .card-subtitle {
-    color: #e2e8f0 !important;
-}
-
-body.dark .progress-container small,
-body.dark-mode .progress-container small {
-    color: #cbd5e1 !important;
-}
-
-body.dark .goal-item small,
-body.dark .timeline-item small,
-body.dark-mode .goal-item small,
-body.dark-mode .timeline-item small {
-    color: #94a3b8 !important;
-}
-
-body.dark .text-center.text-muted,
-body.dark-mode .text-center.text-muted {
-    color: #cbd5e1 !important;
-}
-
-body.dark .text-success,
-body.dark .text-primary,
-body.dark .text-warning,
-body.dark .text-danger,
-body.dark .text-info,
-body.dark-mode .text-success,
-body.dark-mode .text-primary,
-body.dark-mode .text-warning,
-body.dark-mode .text-danger,
-body.dark-mode .text-info {
-    filter: brightness(1.2) !important;
-}
-
-body.dark .col-xl-3.col-md-6 .card .text-muted,
-body.dark-mode .col-xl-3.col-md-6 .card .text-muted {
-    color: #e2e8f0 !important;
-}
-
-/* GOALS PAGE SPECIFIC FIXES - Light backgrounds in amount cards */
-body.dark .amount-card,
-body.dark .amount-card *,
-body.dark .bg-light.amount-card,
-body.dark .goal-card .amount-card,
-body.dark .goal-card .bg-light,
-body.dark .goal-card .d-flex.justify-content-between,
-body.dark-mode .amount-card,
-body.dark-mode .amount-card *,
-body.dark-mode .bg-light.amount-card,
-body.dark-mode .goal-card .amount-card,
-body.dark-mode .goal-card .bg-light,
-body.dark-mode .goal-card .d-flex.justify-content-between {
-    background-color: #334155 !important;
-    color: #e2e8f0 !important;
-}
-
-body.dark .goal-card .amount-card,
-body.dark .goal-card .bg-light,
-body.dark-mode .goal-card .amount-card,
-body.dark-mode .goal-card .bg-light {
-    background: linear-gradient(145deg, #334155, #475569) !important;
-    border: 1px solid #475569 !important;
-}
-
-body.dark .goal-card small.text-muted,
-body.dark .goal-card .text-muted,
-body.dark-mode .goal-card small.text-muted,
-body.dark-mode .goal-card .text-muted {
-    color: #cbd5e1 !important;
-}
-
-body.dark .source-badge,
-body.dark .category-badge,
-body.dark-mode .source-badge,
-body.dark-mode .category-badge {
-    color: #f1f5f9 !important;
-}
-
-/* Additional small text fixes */
-body.dark .card small,
-body.dark-mode .card small,
-body.dark .amount-card small,
-body.dark-mode .amount-card small {
-    color: #e2e8f0 !important;
-}
-
-body.dark .alert small,
-body.dark-mode .alert small,
-body.dark .modal small,
-body.dark-mode .modal small {
-    color: #cbd5e1 !important;
-}
-
-body.dark .table thead small,
-body.dark-mode .table thead small {
-    color: #94a3b8 !important;
-}
-
-/* Final catch-all */
-body.dark *::placeholder,
-body.dark-mode *::placeholder,
-body.dark [class*=\"text-muted\"],
-body.dark-mode [class*=\"text-muted\"] {
-    color: #94a3b8 !important;
-    opacity: 1 !important;
-}
-
-/* Financial Dashboard Circle Fixes */
-body.dark .health-circle-bg::before {
-    background: radial-gradient(circle at 30% 30%, #2d3748 0%, #1a202c 50%, #171923 100%) !important;
-}
-body.dark .health-score-number { 
-    color: #f8fafc !important; 
-}
-body.dark .health-grade {
-    color: #cbd5e1 !important;
-}
-.health-circle-bg::before {
-    z-index: 1 !important;
-}
-
-/* PROFILE FORM VISIBILITY FIXES */
-input, textarea, select {
-    color: #1e293b !important;
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    padding: 10px 12px !important;
-    border-radius: 8px !important;
-}
-
-input::placeholder, textarea::placeholder {
-    color: #94a3b8 !important;
-    opacity: 1 !important;
-}
-
-label, .form-label {
-    color: #1e293b !important;
-    font-weight: 500 !important;
-    margin-bottom: 5px !important;
-    display: block !important;
-}
-
-.checkbox-label, .income-source-item label {
-    color: #1e293b !important;
-    font-size: 14px !important;
-}
-
-input:read-only, input[readonly] {
-    background-color: #f1f5f9 !important;
-    color: #475569 !important;
-}
-
-/* Dark mode form fixes */
-body.dark input, body.dark textarea, body.dark select {
-    color: #f1f5f9 !important;
-    background-color: #334155 !important;
+/* KPI Card Hovers */
+body.dark .card:hover, body.dark-mode .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
     border-color: #475569 !important;
 }
 
-body.dark label, body.dark .form-label {
-    color: #e2e8f0 !important;
+/* Alert Boxes */
+body.dark .alert, body.dark-mode .alert {
+    border-width: 1px !important;
 }
 
-body.dark input::placeholder {
-    color: #94a3b8 !important;
+body.dark .alert-info, body.dark-mode .alert-info {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border-color: #1e3a8a !important;
+    color: #93c5fd !important;
 }
 
-body.dark input:read-only {
+body.dark .alert-success, body.dark-mode .alert-success {
+    background-color: rgba(6, 78, 59, 0.4) !important;
+    border-color: #064e3b !important;
+    color: #a7f3d0 !important;
+}
+
+body.dark .alert-danger, body.dark-mode .alert-danger {
+    background-color: rgba(127, 29, 29, 0.4) !important;
+    border-color: #7f1d1d !important;
+    color: #fecaca !important;
+}
+
+body.dark .alert-warning, body.dark-mode .alert-warning {
+    background-color: rgba(120, 53, 4, 0.4) !important;
+    border-color: #78350f !important;
+    color: #fde68a !important;
+}
+
+/* Modals */
+body.dark .modal-content, body.dark-mode .modal-content {
     background-color: #1e293b !important;
-    color: #cbd5e1 !important;
+    border: 1px solid #334155 !important;
 }
 
-/* ========================================
-   ACCOUNT/PROFILE PAGE (/account/) FIXES
-   Scoped to .profile-container for safety
-   Fixes faint text on light card backgrounds
-   Supports both light/dark modes
-   Overrides inline styles with !important
-   ======================================= */
-
-/* ========================================
-   ACCOUNT/PROFILE PAGE DARK MODE ULTIMATE FIX
-   MAX SPECIFICITY - Targets icons inline styles too
-   ======================================= */
-
-/* DARK MODE - Ultra bright text + icons */
-body.dark .profile-container * {
-    color: #ffffff !important;
-    text-shadow: 0 0 4px rgba(255,255,255,0.5) !important;
+body.dark .modal-header, body.dark-mode .modal-header,
+body.dark .modal-footer, body.dark-mode .modal-footer {
+    border-color: #334155 !important;
 }
 
-body.dark .profile-container .profile-card h4,
-body.dark .profile-container .profile-card h4 i {
-    color: #ffffff !important;
-    text-shadow: none !important;
-    font-weight: 700 !important;
-}
-
-body.dark .profile-container label,
-body.dark .profile-container .form-label {
-    color: #f8fafc !important;
-    font-weight: 600 !important;
-}
-
-body.dark .profile-container input,
-body.dark .profile-container input::placeholder {
-    color: #f8fafc !important;
-    caret-color: #3b82f6 !important;
-}
-
-body.dark .profile-container input[readonly] {
-    color: #e2e8f0 !important;
-    background-color: #1e293b !important;
-}
-
-body.dark .profile-container small,
-body.dark .profile-container .text-muted,
-body.dark .profile-container .source-item {
-    color: #cbd5e1 !important;
-}
-
-body.dark .profile-container .source-item {
+/* Progress Bars background */
+body.dark .progress, body.dark-mode .progress {
     background-color: #334155 !important;
 }
 
-/* LIGHT MODE - Dark bold text */
-.profile-container .profile-card h4,
-.profile-container label {
-    color: #111827 !important;
+/* =============================================================
+   4. FORM ELEMENTS & INPUTS
+   ============================================================= */
+
+/* Scoped specifically to ensure we do not break light mode default styling */
+body.dark input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+body.dark textarea,
+body.dark select,
+body.dark-mode input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+body.dark-mode textarea,
+body.dark-mode select {
+    color: #f1f5f9 !important;
+    background-color: #1e293b !important;
+    border: 2px solid #334155 !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+body.dark input:focus, body.dark textarea:focus, body.dark select:focus,
+body.dark-mode input:focus, body.dark-mode textarea:focus, body.dark-mode select:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+    outline: none !important;
+}
+
+/* Readonly fields in Dark Mode */
+body.dark input:read-only, body.dark input[readonly],
+body.dark-mode input:read-only, body.dark-mode input[readonly] {
+    background-color: #0f172a !important;
+    color: #94a3b8 !important;
+    border-color: #1e293b !important;
+}
+
+/* Form labels visibility */
+body.dark label, body.dark-mode label,
+body.dark .form-label, body.dark-mode .form-label {
+    color: #cbd5e1 !important;
+    font-weight: 500 !important;
+    margin-bottom: 6px !important;
+}
+
+/* Placeholder visibility */
+body.dark input::placeholder, body.dark textarea::placeholder,
+body.dark-mode input::placeholder, body.dark-mode textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+}
+
+/* =============================================================
+   5. TABLES IN DARK MODE
+   ============================================================= */
+
+body.dark .table,
+body.dark-mode .table {
+    color: #e2e8f0 !important;
+    background-color: transparent !important;
+}
+
+body.dark .table th, body.dark .table td,
+body.dark-mode .table th, body.dark-mode .table td {
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+
+body.dark .table thead th,
+body.dark-mode .table thead th {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+body.dark .table-striped tbody tr:nth-of-type(odd),
+body.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+body.dark .table-hover tbody tr:hover,
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* =============================================================
+   6. ACCOUNT/PROFILE PAGE SPECIFIC ALIGNMENTS (.profile-container)
+   ============================================================= */
+
+/* Profile container specific overrides to secure clean reading contrast */
+.profile-container .profile-card h4 {
     font-weight: 700 !important;
 }
 
-.profile-container input {
-    color: #111827 !important;
+/* Light mode overrides inside profile container for strong fonts */
+body:not(.dark):not(.dark-mode) .profile-container label {
+    color: #1e293b !important;
+    font-weight: 600 !important;
 }
 
-.profile-container input::placeholder,
-.profile-container small,
-.profile-container .text-muted {
-    color: #6b7280 !important;
+body:not(.dark):not(.dark-mode) .profile-container input {
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
 }
 
-/* Kill any Bootstrap muted overrides */
-body.dark .profile-container [class*="text-muted"],
-body.dark .profile-container .text-secondary {
+/* Dark mode overrides inside profile container - No Wildcards, Clean Targets */
+body.dark .profile-container label, body.dark-mode .profile-container label,
+body.dark .profile-container h1, body.dark-mode .profile-container h1,
+body.dark .profile-container h2, body.dark-mode .profile-container h2,
+body.dark .profile-container h3, body.dark-mode .profile-container h3,
+body.dark .profile-container h4, body.dark-mode .profile-container h4,
+body.dark .profile-container p, body.dark-mode .profile-container p,
+body.dark .profile-container span:not(.badge), body.dark-mode .profile-container span:not(.badge),
+body.dark .profile-container .source-item {
+    color: #f8fafc !important;
+    text-shadow: none !important;
+}
+
+body.dark .profile-container input,
+body.dark-mode .profile-container input {
+    color: #f1f5f9 !important;
+    background-color: #0f172a !important;
+}
+
+body.dark .profile-container .source-item,
+body.dark-mode .profile-container .source-item {
+    background-color: #334155 !important;
+    border: 1px solid #475569 !important;
+}
+
+/* =============================================================
+   7. SEEDER/BADGE DECORATIONS
+   ============================================================= */
+body.dark .badge.bg-primary,
+body.dark-mode .badge.bg-primary {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+/* Financial Circle Fixes */
+body.dark .health-circle-bg::before,
+body.dark-mode .health-circle-bg::before {
+    background: radial-gradient(circle at 30% 30%, #1e293b 0%, #0f172a 70%) !important;
+}
+body.dark .health-score-number, body.dark-mode .health-score-number { 
+    color: #ffffff !important; 
+}
+body.dark .health-grade, body.dark-mode .health-grade {
     color: #cbd5e1 !important;
 }
-
-
