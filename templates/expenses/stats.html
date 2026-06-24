@@ -303,21 +303,26 @@
 
     /* ========== CUSTOM LEGEND - LIGHT MODE ========== */
     #customLegend {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
         margin-top: 15px;
         padding-top: 10px;
         border-top: 1px solid #e9ecef;
     }
 
     #customLegend .legend-item {
-        display: flex;
-        align-items: center;
-        padding: 6px 10px;
+        display: inline-flex !important;
+        align-items: center !important;
+        padding: 6px 14px !important;
         background: #f8f9fa;
         border-radius: 20px;
         transition: all 0.2s ease;
         font-size: 0.85rem;
         color: #4B5563;
         border: 1px solid transparent;
+        white-space: nowrap !important;
     }
 
     #customLegend .legend-item:hover {
@@ -1240,11 +1245,9 @@
         let html = '';
         categories.forEach((category, index) => {
             html += `
-                <div class="col-md-3 col-sm-4 col-6 mb-2">
-                    <div class="legend-item">
-                        <span class="color-dot" style="background-color: ${chartColors[index % chartColors.length]};"></span>
-                        <span>${category}</span>
-                    </div>
+                <div class="legend-item">
+                    <span class="color-dot" style="background-color: ${chartColors[index % chartColors.length]};"></span>
+                    <span>${category}</span>
                 </div>
             `;
         });
