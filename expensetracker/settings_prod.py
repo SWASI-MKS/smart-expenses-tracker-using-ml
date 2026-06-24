@@ -98,8 +98,11 @@ else:
 if 'whitenoise.runserver_nostatic' not in INSTALLED_APPS:
     INSTALLED_APPS.insert(0, 'whitenoise.runserver_nostatic')
 
-# Optimize static files storage with compression and caching
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Optimize static files storage with compression (without strict manifest hashing to prevent MissingFileError/ValueError crash)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# Prevent 500 errors when a static file (e.g. large video) lacks a hashed manifest entry
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media files
 MEDIA_URL = '/media/'
