@@ -14,6 +14,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
 # Security settings (only enforce SSL redirect if not in debug mode/local testing)
 SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_BROWSER_XSS_FILTER = True
