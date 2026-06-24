@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Financial Health Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .suggestions-container { 
+        padding: 2rem; 
+        max-width: 1400px; 
+        margin: 0 auto; 
+    }
+    
+    .page-header { 
+        text-align: center; 
+        margin-bottom: 3rem; 
+    }
+    
+    .page-header h1 { 
+        font-size: 2.5rem; 
+        font-weight: 800; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+    
+    /* Health Score Circle */
+    .health-score-section { 
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+        border-radius: 24px; 
+        padding: 3rem; 
+        margin-bottom: 3rem; 
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+    
+    .health-score-circle {
+        position: relative;
+        width: 220px;
+        height: 220px;
+        margin: 0 auto 2rem;
+    }
+    
+    .health-circle-bg {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: conic-gradient(#e5e7eb 0deg, #e5e7eb calc(var(--health-percent, 0) * 3.6deg), transparent calc(var(--health-percent, 0) * 3.6deg));
+        position: relative;
+    }
+    
+    .health-circle-bg::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+        border-radius: 50%;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .health-score-display {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 2;
+    }
+    
+    .health-score-number {
+        font-size: 3.5rem;
+        font-weight: 900;
+        color: #1e293b;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+    
+    .health-grade {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .factors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .factor-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+        transition: transform 0.2s ease;
+    }
+    
+    .factor-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .factor-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .factor-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    
+    .factor-score {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-top: 0.25rem;
+    }
+    
+    /* Metric Cards */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    }
+    
+    .metric-icon {
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .metric-content {
+        padding-right: 1rem;
+    }
+    
+    .metric-title {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+    
+    .metric-subtitle {
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+    
+    .metric-positive { color: #10b981; }
+    .metric-negative { color: #ef4444; }
+    .metric-warning { color: #f59e0b; }
+    
+    /* Recommendations */
+    .recommendations {
+        margin-bottom: 3rem;
+    }
+    
+    .rec-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .rec-card:hover {
+        transform: translateX(8px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    .rec-type-warning { border-left-color: #f59e0b; }
+    .rec-type-good { border-left-color: #10b981; }
+    
+    .rec-icon {
+        float: left;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .rec-warning .rec-icon { background: #fef3c7; color: #92400e; }
+    .rec-good .rec-icon { background: #d1fae5; color: #065f46; }
+    
+    .rec-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .rec-message {
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+    
+    /* Dark Mode */
+    body.dark .health-score-section { 
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%); 
+    }
+    
+    body.dark .health-circle-bg::before { 
+        background: radial-gradient(circle at 30% 30%, #2d3748 0%, #1a202c 50%, #171923 100%); 
+    }
+    
+    body.dark .metric-card, 
+    body.dark .rec-card,
+    body.dark .factor-card { 
+        background: #2d3748; 
+        border-color: #4a5568; 
+    }
+    
+    body.dark .metric-value, 
+    body.dark .rec-title { 
+        color: #e2e8f0; 
+    }
+    
+    body.dark .metric-title, 
+    body.dark .rec-message,
+    body.dark .factor-label { 
+        color: #a0aec0; 
+    }
+    
+    body.dark .health-score-number { 
+        color: #edf2f7; 
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .metrics-grid { 
+            grid-template-columns: 1fr; 
+        }
+        
+        .health-score-section { 
+            padding: 1.5rem; 
+        }
+    }
+</style>
+
+<div class="suggestions-container">
+    <!-- Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-chart-line me-2"></i>Financial Health Dashboard</h1>
+        <p>Real-time analysis of your financial health with actionable recommendations</p>
+    </div>
+    
+    <!-- Health Score -->
+    <div class="health-score-section">
+        <div class="health-score-circle">
+            <div class="health-circle-bg" style="--health-percent: {{ health_score.score }};" {% if health_score.grade_color %}style="--health-color: {{ health_score.grade_color }};"{% endif %}>
+            </div>
+            <div class="health-score-display">
+                <div class="health-score-number">{{ health_score.score }}/100</div>
+                <div class="health-grade">{{ health_score.grade }}</div>
+            </div>
+        </div>
+        
+        <div class="factors-grid">
+            {% for key, factor in health_score.factors.items %}
+            <div class="factor-card">
+                <div class="factor-label">{{ key|replace:"_" " " }}</div>
+                <div class="factor-value">{{ factor.value }}</div>
+                <div class="factor-score">{{ factor.score }}/25</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Monthly Income</div>
+                <div class="metric-value metric-positive">{{ currency_symbol }}{{ budget.monthly_income|floatformat:0 }}</div>
+                <div class="metric-subtitle">Last 30 days</div>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Monthly Expenses</div>
+                <div class="metric-value metric-negative">{{ currency_symbol }}{{ budget.monthly_expenses|floatformat:0 }}</div>
+                <div class="metric-subtitle">Last 30 days</div>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Savings Rate</div>
+                <div class="metric-value metric-positive">{{ savings_rate.current_rate|floatformat:1 }}%</div>
+                <div class="metric-subtitle">{{ savings_rate.status|title }}</div>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-umbrella-beach"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Emergency Fund</div>
+                <div class="metric-value metric-{{ 'positive' if emergency_fund_pct >= 50 else 'warning' }}">{{ emergency_fund_pct|floatformat:1 }}%</div>
+                <div class="metric-subtitle">Coverage (3 months target)</div>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Net Worth</div>
+                <div class="metric-value {{ net_worth.wealth_status|lower }}">{{ currency_symbol }}{{ net_worth.total|floatformat:0 }}</div>
+                <div class="metric-subtitle">{{ net_worth.wealth_status|title }}</div>
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="metric-content">
+                <div class="metric-title">Goal Progress</div>
+                <div class="metric-value metric-positive">{{ goal_progress_pct|floatformat:1 }}%</div>
+                <div class="metric-subtitle">All active goals</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recommendations -->
+    <div class="recommendations">
+        <h3 class="section-header"><i class="fas fa-lightbulb me-2"></i>Actionable Recommendations</h3>
+        {% for rec in recommendations %}
+        <div class="rec-card rec-{{ rec.type|lower }}">
+            <div class="rec-icon">
+                {% if rec.type == 'warning' %}<i class="fas fa-exclamation-triangle"></i>{% else %}<i class="fas fa-check-circle"></i>{% endif %}
+            </div>
+            <div>
+                <h4 class="rec-title">{{ rec.title }}</h4>
+                <p class="rec-message">{{ rec.message }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        {% if not recommendations %}
+        <div class="rec-card">
+            <i class="fas fa-thumbs-up fa-3x text-success mb-3"></i>
+            <h4>Great Financial Health!</h4>
+            <p>Your financial metrics look excellent. Keep up the good work and consider increasing investments.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Update health score circle dynamically
+document.addEventListener('DOMContentLoaded', function() {
+    const score = {{ health_score.score|default:0 }};
+    const circle = document.querySelector('.health-circle-bg');
+    if (circle) {
+        circle.style.setProperty('--health-percent', score);
+    }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Security Alert: Suspicious Login - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">🔐 Security Alert</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    <p>We detected a login attempt to your ExpenseWise account from a new or unusual location.</p>
+    
+    <div class="alert-box alert-box-danger">
+        <strong>If this wasn't you:</strong> Please change your password immediately and enable two-factor authentication.
+    </div>
+    
+    <div class="info-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <div>
+                <div class="info-label">IP Address</div>
+                <div class="info-value">{{ ip_address }}</div>
+            </div>
+            <div>
+                <div class="info-label">Location</div>
+                <div class="info-value">{{ location }}</div>
+            </div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div class="info-label">Device/Browser</div>
+            <div class="info-value">{{ device }}</div>
+        </div>
+        <div>
+            <div class="info-label">Time</div>
+            <div class="info-value">{{ timestamp }}</div>
+        </div>
+    </div>
+    
+    <center>
+        <a href="{{ site_url }}/account/security" class="btn btn-danger">Secure Your Account</a>
+    </center>
+    
+    <p style="margin-top: 30px;">
+        If this was you, you can safely ignore this email. We just want to keep your account secure.
+    </p>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        <strong>Security tips:</strong>
+        <br>• Use a strong, unique password
+        <br>• Enable two-factor authentication
+        <br>• Don't share your login credentials
+        <br><br>
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

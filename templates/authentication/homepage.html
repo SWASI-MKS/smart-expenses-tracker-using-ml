@@ -1,0 +1,1498 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseWise - Smart Finance Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-rgb: 37, 99, 235;
+            --secondary-color: #0f172a;
+            --accent-color: #1e293b;
+            --text-dark: #020617;
+            --text-light: #64748b;
+            --white: #ffffff;
+            --light-bg: #f8fafc;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, #2563eb, #1d4ed8);
+            --gradient-light: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
+            --box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+            --box-shadow-hover: 0 20px 40px rgba(37, 99, 235, 0.25);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--white);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.25rem 0;
+            background: var(--white);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 10;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color) !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .navbar-brand i {
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .navbar-brand:hover i {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        .navbar-brand::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transition: var(--transition);
+        }
+
+        .navbar-brand:hover::after {
+            width: 100%;
+        }
+
+        .nav-link {
+            color: var(--text-dark) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
+        /* Buttons */
+        .btn-auth {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: var(--transition);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-auth::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-auth:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-login {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-login:hover {
+            background: var(--primary-color);
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .btn-register {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.4);
+            color: white !important;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 5rem 0;
+            background: linear-gradient(180deg, var(--light-bg) 0%, var(--white) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.875rem;
+            background: rgba(var(--primary-rgb), 0.1);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            animation: fadeInDown 0.6s ease forwards;
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge i {
+            color: var(--primary-color);
+        }
+
+        .hero-title {
+            font-size: 3.25rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.25rem;
+            color: var(--text-dark);
+            animation: fadeInUp 0.6s ease 0.1s forwards;
+            opacity: 0;
+        }
+
+        .hero-title .highlight {
+            color: var(--primary-color);
+            position: relative;
+            display: inline-block;
+        }
+
+        .hero-title .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(var(--primary-rgb), 0.2);
+            z-index: -1;
+            border-radius: 4px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            margin-bottom: 1.75rem;
+            max-width: 550px;
+            animation: fadeInUp 0.6s ease 0.2s forwards;
+            opacity: 0;
+            line-height: 1.7;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        .btn-hero {
+            padding: 0.875rem 1.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hero-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .btn-hero-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .btn-hero-secondary {
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            color: var(--text-dark);
+        }
+
+        .btn-hero-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color) !important;
+            background: rgba(var(--primary-rgb), 0.05);
+        }
+
+        /* Hero Image/Stats Card */
+        .hero-visual {
+            animation: fadeInRight 0.8s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        .stats-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.1), transparent);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .stat-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateX(5px);
+            background: rgba(var(--primary-rgb), 0.02);
+            padding-left: 0.5rem;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .stat-value.income {
+            color: var(--success-color);
+        }
+
+        .stat-value.expense {
+            color: var(--danger-color);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 5rem 0;
+            background: var(--light-bg);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 0.4rem 0.875rem;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.875rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.875rem;
+            color: var(--text-dark);
+        }
+
+        .section-subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+            max-width: 550px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            height: 100%;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.05), transparent);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-color);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            background: rgba(var(--primary-rgb), 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card:hover .feature-icon {
+            background: var(--gradient-primary);
+            color: white;
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.3);
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.625rem;
+            color: var(--text-dark);
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            padding: 2.5rem 0;
+            background: var(--gradient-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-bar::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .stat-bar-item {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-bar-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .stat-bar-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2.5rem 0;
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .footer-brand:hover {
+            transform: translateX(5px);
+        }
+
+        .footer-brand i {
+            color: var(--primary-color);
+        }
+
+        .footer-text {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .footer-links a {
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: var(--transition);
+            margin: 0 1rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Floating Piggy Animation */
+        .floating-piggy {
+            width: 500px;
+            animation: float 5s ease-in-out infinite;
+            filter: drop-shadow(0 25px 40px rgba(var(--primary-rgb), 0.2));
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-25px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Growth Card */
+       .growth-card {
+    background: rgba(var(--primary-rgb), 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
+    border-radius: 28px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    transition: var(--transition);
+    
+    /* ADD THESE LINES TO INCREASE WIDTH */
+    width: 100%;
+    max-width: 900px;  /* Adjust this value as needed */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+        .growth-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(var(--primary-rgb), 0.2);
+        }
+
+        /* Background Grid */
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(var(--primary-rgb), 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--primary-rgb), 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Floating Icons */
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .float-icon {
+            position: absolute;
+            color: rgba(var(--primary-rgb), 0.15);
+            font-size: 20px;
+            animation: floatProfessional 8s infinite ease-in-out;
+        }
+
+        .float-icon:nth-child(1) { top: 15%; left: 10%; }
+        .float-icon:nth-child(2) { top: 70%; right: 15%; animation-delay: 1s; }
+        .float-icon:nth-child(3) { bottom: 20%; left: 20%; animation-delay: 2s; }
+        .float-icon:nth-child(4) { top: 40%; right: 25%; animation-delay: 3s; }
+
+        @keyframes floatProfessional {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.15;
+            }
+            50% {
+                transform: translateY(-15px);
+                opacity: 0.25;
+            }
+        }
+
+        /* Content Layer */
+        .growth-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        .growth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .growth-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            opacity: 0.9;
+            color: var(--text-dark);
+        }
+
+        .growth-badge {
+            background: rgba(var(--primary-rgb), 0.1);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Chart */
+        .chart-container {
+            margin: 1.5rem 0;
+            padding: 0.8rem;
+            background: rgba(var(--primary-rgb), 0.03);
+            border-radius: 20px;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.6rem;
+            height: 150px;
+        }
+
+        .chart-bar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .chart-bar {
+            width: 100%;
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border-radius: 6px 6px 3px 3px;
+            min-height: 15px;
+            transition: height 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            to { left: 200%; }
+        }
+
+        .chart-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            color: var(--text-dark);
+        }
+
+        /* Stats */
+        .stats-grid-professional {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item-professional {
+            background: rgba(var(--primary-rgb), 0.03);
+            border: 1px solid rgba(var(--primary-rgb), 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-item-professional:hover {
+            background: rgba(var(--primary-rgb), 0.08);
+            transform: translateY(-3px);
+            border-color: var(--primary-color);
+        }
+
+        .stat-icon {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-value-professional {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            color: var(--text-dark);
+        }
+
+        .stat-label-professional {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            color: var(--text-light);
+        }
+
+        /* Progress */
+        .progress-section {
+            margin: 1.5rem 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+
+        .progress-bar-professional {
+            height: 6px;
+            background: rgba(var(--primary-rgb), 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill-professional {
+            height: 100%;
+            width: 68%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill-professional::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 2s infinite;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(var(--primary-rgb), 0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .hero-title {
+                font-size: 2.25rem;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .hero-subtitle {
+                margin: 0 auto 1.75rem;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .stats-grid-professional {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 1.875rem;
+            }
+
+            .btn-hero {
+                padding: 0.7rem 1.25rem;
+                font-size: 0.9rem;
+            }
+
+            .stats-grid-professional {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links a {
+                margin: 0 0.5rem;
+            }
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body.dark {
+                background: #0f172a;
+                color: #f8fafc;
+            }
+
+            body.dark .navbar {
+                background: #0f172a;
+                border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+            }
+
+            body.dark .nav-link {
+                color: #f8fafc !important;
+            }
+
+            body.dark .hero-section {
+                background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            }
+
+            body.dark .feature-card {
+                background: #1e293b;
+                border-color: rgba(var(--primary-rgb), 0.2);
+            }
+
+            body.dark .feature-title {
+                color: #f8fafc;
+            }
+
+            body.dark .feature-description {
+                color: #94a3b8;
+            }
+
+            body.dark .footer {
+                background: #0f172a;
+                border-color: rgba(var(--primary-rgb), 0.2);
+            }
+
+            body.dark .footer-text {
+                color: #94a3b8;
+            }
+
+            body.dark .footer-links a {
+                color: #f8fafc;
+            }
+
+            body.dark .footer-links a:hover {
+                color: var(--primary-color);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-wallet"></i>
+                ExpenseWise
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="btn-auth btn-register" href="{% url 'dashboard' %}">Dashboard</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn-auth btn-login" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn-auth btn-register" href="{% url 'register' %}">Get Started</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="hero-content text-lg-start text-center">
+                        <div class="hero-badge">
+                            <i class="fas fa-rocket"></i>
+                            #1 Best Personal Finance App
+                        </div>
+                        <h1 class="hero-title">
+                            Master Your <span class="highlight">Finances</span> with Confidence
+                        </h1>
+                        <p class="hero-subtitle">
+                            Track expenses, set budgets, and achieve your financial goals. 
+                            Experience the future of personal finance management with powerful insights and beautiful analytics.
+                        </p>
+                        <div class="hero-buttons justify-content-lg-start justify-content-center">
+                            <a href="{% url 'register' %}" class="btn btn-hero btn-hero-primary">
+                                <i class="fas fa-user-plus me-2"></i>Start Free
+                            </a>
+                            <button class="btn btn-hero btn-hero-secondary" onclick="openVideo()">
+    <i class="fas fa-play me-2"></i>Watch Demo video
+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-visual">
+                        <!-- Professional Growth Card -->
+                        <div class="growth-card">
+                            <div class="grid-pattern"></div>
+                            <div class="floating-elements">
+                                <div class="float-icon"><i class="fas fa-chart-bar"></i></div>
+                                <div class="float-icon"><i class="fas fa-chart-pie"></i></div>
+                                <div class="float-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="float-icon"><i class="fas fa-coins"></i></div>
+                            </div>
+
+                            <div class="growth-content">
+                                <div class="growth-header">
+                                    <span class="growth-title">Portfolio Overview</span>
+                                    <span class="growth-badge"><i class="fas fa-shield-alt"></i> Secured</span>
+                                </div>
+
+                                <div class="chart-container">
+                                    <div class="chart" id="growthChart">
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 80px;"></div>
+                                            <span class="chart-label">Jan</span>
+                                        </div>
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 110px;"></div>
+                                            <span class="chart-label">Feb</span>
+                                        </div>
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 95px;"></div>
+                                            <span class="chart-label">Mar</span>
+                                        </div>
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 130px;"></div>
+                                            <span class="chart-label">Apr</span>
+                                        </div>
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 115px;"></div>
+                                            <span class="chart-label">May</span>
+                                        </div>
+                                        <div class="chart-bar-container">
+                                            <div class="chart-bar" style="height: 145px;"></div>
+                                            <span class="chart-label">Jun</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="stats-grid-professional">
+                                    <div class="stat-item-professional">
+                                        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                                        <div class="stat-value-professional" id="totalSavings">₹2,45,000</div>
+                                        <div class="stat-label-professional">Total Savings</div>
+                                    </div>
+                                    <div class="stat-item-professional">
+                                        <div class="stat-icon"><i class="fas fa-percent"></i></div>
+                                        <div class="stat-value-professional">15.8%</div>
+                                        <div class="stat-label-professional">Growth Rate</div>
+                                    </div>
+                                    <div class="stat-item-professional">
+                                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                                        <div class="stat-value-professional" id="monthlySavings">₹32,500</div>
+                                        <div class="stat-label-professional">This Month</div>
+                                    </div>
+                                </div>
+
+                                <div class="progress-section">
+                                    <div class="progress-header">
+                                        <span>Annual Goal Progress</span>
+                                        <span>₹2.45L / ₹3.6L</span>
+                                    </div>
+                                    <div class="progress-bar-professional">
+                                        <div class="progress-fill-professional" style="width: 68%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar" id="stats">
+        <div class="container">
+            <div class="row">
+                <div class="col-3">
+    <div class="stat-bar-item">
+        <div class="stat-bar-number">AI Powered</div>
+        <div class="stat-bar-label">Automatic Expense Categorization</div>
+    </div>
+</div>
+
+<div class="col-3">
+    <div class="stat-bar-item">
+        <div class="stat-bar-number">Voice Enabled</div>
+        <div class="stat-bar-label">Instant Expense Entry</div>
+    </div>
+</div>
+
+<div class="col-3">
+    <div class="stat-bar-item">
+        <div class="stat-bar-number">Smart Alerts</div>
+        <div class="stat-bar-label">Real-Time Budget Monitoring</div>
+    </div>
+</div>
+
+<div class="col-3">
+    <div class="stat-bar-item">
+        <div class="stat-bar-number">Live Analytics</div>
+        <div class="stat-bar-label">Interactive Spending Reports</div>
+    </div>
+</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Features</span>
+                <h2 class="section-title">Everything You Need</h2>
+                <p class="section-subtitle">
+                    Powerful features to help you manage your finances effectively and achieve your financial goals.
+                </p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3 class="feature-title">Smart Analytics</h3>
+                        <p class="feature-description">
+                            Visualize your spending patterns with beautiful charts and gain insights into where your money goes.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h3 class="feature-title">Budget Alerts</h3>
+                        <p class="feature-description">
+                            Set spending limits and receive instant notifications when you're approaching your budget thresholds.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3 class="feature-title">Goal Tracking</h3>
+                        <p class="feature-description">
+                            Set financial goals and track your progress. Whether it's saving for a vacation or emergency fund.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <h3 class="feature-title">Receipt Scanning</h3>
+                        <p class="feature-description">
+                            OCR-powered receipt scanning automatically extracts expense details. Just snap a photo and relax.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="feature-title">AI Predictions</h3>
+                        <p class="feature-description">
+                            Machine learning predicts future expenses based on your history, helping you plan ahead.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card fade-in-up">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Bank Security</h3>
+                        <p class="feature-description">
+                            Your data is encrypted with bank-level security. We never share your personal information.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- Video Modal -->
+<div id="videoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+    
+    <div style="position:relative; width:80%; max-width:800px;">
+        
+        <!-- Close Button -->
+        <span onclick="closeVideo()" style="position:absolute; top:-40px; right:0; font-size:30px; color:white; cursor:pointer;">&times;</span>
+        
+        <!-- Video -->
+        <video id="demoVideo" width="100%" controls>
+            <source src="{% static 'vid/demo.mp4' %}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        
+    </div>
+</div>
+    <!-- About Section -->
+    <section class="about-section" id="about" style="padding: 5rem 0; background: var(--white);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6"><center>
+                    <span class="section-tag">About Us</span>
+                    </center>
+                    <h2 class="section-title" style="font-size: 2.25rem; margin-bottom: 1rem;">Transforming Personal Finance Management</h2>
+                    <p class="feature-description" style="font-size: 1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                        ExpenseWise is a comprehensive personal finance management application designed to help you take control of your financial life. We believe that everyone deserves access to powerful financial tools that make saving and budgeting effortless.
+                    </p>
+                    <p class="feature-description" style="font-size: 1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                        Our platform combines cutting-edge technology with user-friendly design to provide an unparalleled experience in tracking expenses, managing income, and planning for the future. With features like AI-powered expense predictions, receipt scanning, and detailed analytics, we empower you to make smarter financial decisions.
+                    </p>
+                    <div class="row g-4 mt-3">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="feature-icon" style="width: 44px; height: 44px; margin-bottom: 0;">
+                                    <i class="fas fa-user-friends"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 1.25rem;">50,000+</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-light);">Happy Users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="feature-icon" style="width: 44px; height: 44px; margin-bottom: 0;">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 1.25rem;">150+</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-light);">Currencies</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-4 mt-lg-0">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="about-card" style="background: var(--light-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color);">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="feature-icon" style="width: 48px; height: 48px; margin-bottom: 0; background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 1.1rem; font-weight: 600; margin: 0;">Our Vision</h4>
+                                    </div>
+                                </div>
+                                <p class="feature-description" style="margin: 0;">To become the world's most trusted personal finance companion, making financial wellness accessible to everyone, everywhere.</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="about-card" style="background: var(--light-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color);">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="feature-icon" style="width: 48px; height: 48px; margin-bottom: 0; background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
+                                        <i class="fas fa-bullseye"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 1.1rem; font-weight: 600; margin: 0;">Our Mission</h4>
+                                    </div>
+                                </div>
+                                <p class="feature-description" style="margin: 0;">To simplify financial management through innovative technology, providing users with the tools and insights they need to achieve their financial goals.</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="about-card" style="background: var(--light-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color);">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="feature-icon" style="width: 48px; height: 48px; margin-bottom: 0; background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div>
+                                        <h4 style="font-size: 1.1rem; font-weight: 600; margin: 0;">Why Choose Us</h4>
+                                    </div>
+                                </div>
+                                <p class="feature-description" style="margin: 0;">We prioritize your privacy and security with bank-level encryption, offer intuitive interfaces, and provide responsive support to ensure your financial data stays safe.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Section -->
+            <div class="mt-5 pt-4">
+                <div class="section-header">
+                    <span class="section-tag">Our Values</span>
+                    <h2 class="section-title">What Drives Us</h2>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="text-center p-4">
+                            <div class="feature-icon mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%;">
+                                <i class="fas fa-lock" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Security First</h4>
+                            <p class="feature-description" style="margin: 0;">Your data is protected with enterprise-grade security</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-4">
+                            <div class="feature-icon mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%;">
+                                <i class="fas fa-lightbulb" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Innovation</h4>
+                            <p class="feature-description" style="margin: 0;">Continuous improvement with cutting-edge technology</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-4">
+                            <div class="feature-icon mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%;">
+                                <i class="fas fa-users" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">User-Centric</h4>
+                            <p class="feature-description" style="margin: 0;">Designed around your needs and feedback</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-4">
+                            <div class="feature-icon mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%;">
+                                <i class="fas fa-hand-holding-usd" style="font-size: 1.5rem;"></i>
+                            </div>
+                            <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Transparency</h4>
+                            <p class="feature-description" style="margin: 0;">Clear, honest practices with no hidden fees</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="footer-brand">
+                        <i class="fas fa-wallet"></i>
+                        ExpenseWise
+                    </div>
+                    <p class="footer-text mt-2">
+                        Making finance management simple and accessible for everyone.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end text-center">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openVideo() {
+    const modal = document.getElementById("videoModal");
+    const video = document.getElementById("demoVideo");
+
+    modal.style.display = "flex";
+    video.play();
+}
+
+function closeVideo() {
+    const modal = document.getElementById("videoModal");
+    const video = document.getElementById("demoVideo");
+
+    modal.style.display = "none";
+    video.pause();
+    video.currentTime = 0;
+}
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+ 

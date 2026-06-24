@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-file-invoice me-2"></i>{{ debt.loan_name }}
+            </h2>
+            <p class="text-muted mb-0">{{ debt.get_loan_type_display }} - {{ debt.lender_name|default:"No lender specified" }}</p>
+        </div>
+        <div>
+            <a href="{% url 'debt-list' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+            <a href="{% url 'edit-debt' debt.id %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a href="{% url 'record-emi' debt.id %}" class="btn btn-success">
+                <i class="fas fa-rupee-sign me-2"></i>Record Payment
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Badge -->
+    <div class="mb-4">
+        {% if debt.status == 'ACTIVE' %}
+        <span class="badge bg-success fs-6">Active</span>
+        {% elif debt.status == 'PAID_OFF' %}
+        <span class="badge bg-info fs-6">Paid Off</span>
+        {% elif debt.status == 'DEFAULTED' %}
+        <span class="badge bg-danger fs-6">Defaulted</span>
+        {% else %}
+        <span class="badge bg-warning fs-6">{{ debt.status }}</span>
+        {% endif %}
+        {% if debt.is_overdue %}
+        <span class="badge bg-danger fs-6 ms-2">Overdue</span>
+        {% endif %}
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Principal Amount</p>
+                    <h4 class="mb-0">₹{{ debt.principal_amount|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Interest</p>
+                    <h4 class="mb-0">₹{{ debt.total_interest|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Cost</p>
+                    <h4 class="mb-0">₹{{ debt.total_cost_of_loan|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Monthly EMI</p>
+                    <h4 class="mb-0">₹{{ debt.emi_amount|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Loan Progress</h5>
+                <span class="text-muted">{{ progress }}% Complete</span>
+            </div>
+            <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-success" style="width: {{ progress }}%">{{ progress }}%</div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <p class="text-muted mb-1">Amount Paid</p>
+                    <strong>₹{{ total_paid|intcomma }}</strong>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1">Remaining Balance</p>
+                    <strong>₹{{ remaining|intcomma }}</strong>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1">EMIs Remaining</p>
+                    <strong>{{ debt.emi_remaining }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loan Details & EMI Schedule -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">Loan Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td class="text-muted">Loan Name</td>
+                            <td>{{ debt.loan_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Loan Type</td>
+                            <td>{{ debt.get_loan_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Interest Rate</td>
+                            <td>{{ debt.interest_rate }}% per annum</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Loan Term</td>
+                            <td>{{ debt.loan_term_months }} months</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Start Date</td>
+                            <td>{{ debt.start_date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">End Date</td>
+                            <td>{{ debt.end_date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Next EMI Date</td>
+                            <td>{{ debt.next_emi_date }}</td>
+                        </tr>
+                        {% if debt.account_number %}
+                        <tr>
+                            <td class="text-muted">Account Number</td>
+                            <td>{{ debt.account_number }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if debt.notes %}
+                        <tr>
+                            <td class="text-muted">Notes</td>
+                            <td>{{ debt.notes }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">EMI Schedule (First 12 Months)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>EMI</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in schedule %}
+                                <tr>
+                                    <td>{{ item.month }}</td>
+                                    <td>₹{{ item.emi|intcomma }}</td>
+                                    <td>₹{{ item.principal|intcomma }}</td>
+                                    <td>₹{{ item.interest|intcomma }}</td>
+                                    <td>₹{{ item.balance|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMI Payments History -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header py-3">
+            <h5 class="mb-0">EMI Payments History</h5>
+        </div>
+        <div class="card-body">
+            {% if emi_payments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Due Date</th>
+                            <th>Amount</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Status</th>
+                            <th>Paid Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in emi_payments %}
+                        <tr class="{% if payment.is_overdue %}table-danger{% endif %}">
+                            <td>{{ payment.due_date }}</td>
+                            <td>₹{{ payment.amount|intcomma }}</td>
+                            <td>₹{{ payment.principal_portion|intcomma }}</td>
+                            <td>₹{{ payment.interest_portion|intcomma }}</td>
+                            <td>
+                                {% if payment.is_paid %}
+                                <span class="badge bg-success">Paid</span>
+                                {% elif payment.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ payment.paid_date|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-4">No EMI payments recorded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

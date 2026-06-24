@@ -1,0 +1,38 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Daily Spending Summary - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">📊 Daily Spending Summary</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    <p>Here's your spending summary for <strong>{{ date }}</strong>:</p>
+    
+    <div class="info-box" style="text-align: center; padding: 30px;">
+        <div class="info-label" style="font-size: 14px; color: #64748b; margin-bottom: 10px;">Total Spent</div>
+        <div class="info-value" style="font-size: 36px; font-weight: 700; color: #2563eb;">{{ formatted_total }}</div>
+    </div>
+    
+    <div class="alert-box" style="background: #f0f9ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;">
+        <strong>💡 Tip:</strong> Review your expenses regularly to stay on track with your financial goals.
+    </div>
+    
+    <p>To view more details about your expenses, click the button below:</p>
+    
+    <center>
+        <a href="{{ site_url }}/expenses" class="btn">View Expenses</a>
+    </center>
+    
+    <p style="margin-top: 30px;">
+        If you have any questions or need to adjust your notification preferences,
+        please contact our support team.
+    </p>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        You're receiving this email because you have daily summary notifications enabled.
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

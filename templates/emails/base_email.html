@@ -1,0 +1,193 @@
+{# Base email template with professional styling #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ExpenseWise Notification{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        table { border-collapse: collapse !important; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        
+        /* Typography */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        /* Content */
+        .email-content {
+            background: #ffffff;
+            padding: 40px 30px;
+        }
+        
+        /* Footer */
+        .email-footer {
+            background: #f8fafc;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+        }
+        
+        .email-footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+        }
+        
+        .btn-success {
+            background: #16a34a;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+        }
+        
+        /* Alerts */
+        .alert-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .alert-box-danger {
+            background: #fee2e2;
+            border-left-color: #dc2626;
+        }
+        
+        .alert-box-success {
+            background: #dcfce7;
+            border-left-color: #16a34a;
+        }
+        
+        /* Info box */
+        .info-box {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 20px 0;
+        }
+        
+        /* Mobile responsive */
+        @media screen and (max-width: 600px) {
+            .email-container { width: 100% !important; }
+            .email-content { padding: 20px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc;">
+    
+    <!-- Email Wrapper -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+        <tr>
+            <td align="center" style="padding: 20px 10px;">
+                
+                <!-- Email Container -->
+                <table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" width="600" style="max-width: 600px; width: 100%;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td class="email-header">
+                            <h1>💰 ExpenseWise</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td class="email-content">
+                            {% block content %}
+                            {% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="email-footer">
+                            <p style="margin: 0 0 10px 0;">
+                                &copy; {{ current_year }} ExpenseWise. All rights reserved.
+                            </p>
+                            <p style="margin: 0;">
+                                <a href="{{ site_url }}">Visit Website</a> | 
+                                <a href="{{ site_url }}/preferences">Email Preferences</a> |
+                                <a href="{{ site_url }}/support">Support</a>
+                            </p>
+                            <p style="margin: 15px 0 0 0; font-size: 11px; color: #94a3b8;">
+                                This is an automated message. Please do not reply directly to this email.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+                <!-- End Email Container -->
+                
+            </td>
+        </tr>
+    </table>
+    
+</body>
+</html>

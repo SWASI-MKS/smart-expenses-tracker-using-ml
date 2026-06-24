@@ -1,0 +1,1016 @@
+    {% extends "base.html" %}
+    {% load static %}
+
+    {% block content %}
+    <div class="container-fluid px-4 mt-4">
+        <!-- Header with animation -->
+        <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+            <div>
+                <h2 class="fw-bold gradient-text">
+                    <i class="fas fa-bullseye me-2"></i>Savings Goals
+                </h2>
+                <p class="text-muted mb-0 slide-in">Track and manage your financial goals</p>
+            </div>
+            <div class="d-flex gap-2">
+                <form method="POST" action="{% url 'refresh_goal_statuses' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm hover-effect">
+                        <i class="fas fa-sync-alt"></i> Refresh Status
+                    </button>
+                </form>
+                <a href="{% url 'add_goal' %}" class="btn btn-primary btn-sm hover-effect">
+                    <i class="fas fa-plus"></i> Add Goal
+                </a>
+            </div>
+        </div>
+
+        <!-- Status Summary Cards with animations and colored labels -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 stagger-item">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase small fw-bold" style="color: #4e73df;">ACTIVE GOALS</small>
+                                <h4 class="mb-0 mt-2">{{ active_goals.count }}</h4>
+                                <span class="badge bg-primary-light text-primary mt-2">
+                                    <i class="fas fa-play-circle me-1"></i>In Progress
+                                </span>
+                            </div>
+                            <div class="kpi-icon bg-primary-light pulse-animation">
+                                <i class="fas fa-play-circle text-primary fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 stagger-item">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase small fw-bold" style="color: #1cc88a;">COMPLETED</small>
+                                <h4 class="mb-0 mt-2">{{ completed_goals.count }}</h4>
+                                <span class="badge bg-success-light text-success mt-2">
+                                    <i class="fas fa-check-circle me-1"></i>Achieved 🏆
+                                </span>
+                            </div>
+                            <div class="kpi-icon bg-success-light bounce-animation">
+                                <i class="fas fa-check-circle text-success fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 stagger-item">
+                <div class="card border-0 shadow-sm h-100 hover-lift border-warning-glow">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-uppercase small fw-bold" style="color: #e74a3b;">OVERDUE</small>
+                                <h4 class="mb-0 mt-2 text-danger">{{ overdue_goals.count }}</h4>
+                                <span class="badge bg-danger-light text-danger mt-2">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>⚠️ Attention Needed
+                                </span>
+                            </div>
+                            <div class="kpi-icon bg-danger-light shake-animation">
+                                <i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Archived Stats Card - Clickable -->
+            <div class="col-md-3 stagger-item">
+                <a href="#archived-section" class="text-decoration-none" onclick="document.getElementById('archived-section').scrollIntoView({behavior: 'smooth'});">
+                    <div class="card border-0 shadow-sm h-100 hover-lift archived-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-uppercase small fw-bold" style="color: #6c757d;">ARCHIVED</small>
+                                    <h4 class="mb-0 mt-2">{{ archived_goals.count }}</h4>
+                                    <span class="badge bg-secondary-light text-secondary mt-2">
+                                        <i class="fas fa-archive me-1"></i>📦 Stored
+                                    </span>
+                                </div>
+                                <div class="kpi-icon bg-secondary-light float-animation">
+                                    <i class="fas fa-archive text-secondary fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show slide-in" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Goals List -->
+        <div class="row g-4">
+            {% for goal in goals %}
+            <div class="col-lg-6 stagger-item">
+                <!-- Goal Card with conditional styling -->
+                <div class="card border-0 h-100 goal-card 
+                    {% if goal.status == 'OVERDUE' %}border-danger border-2{% endif %}
+                    {% if goal.status == 'COMPLETED' %}border-success border-2{% endif %}
+                    {% if goal.status == 'ARCHIVED' %}bg-light{% endif %}"
+                    style="animation-delay: {{ forloop.counter0|add:1|stringformat:'.1f' }}s;">
+                    
+                    <div class="card-body">
+                        <!-- Goal Header with gradient background for status -->
+                        <div class="goal-header mb-3 p-3 rounded-3 
+                            {% if goal.status == 'ACTIVE' %}bg-primary-soft{% endif %}
+                            {% if goal.status == 'COMPLETED' %}bg-success-soft{% endif %}
+                            {% if goal.status == 'OVERDUE' %}bg-danger-soft{% endif %}
+                            {% if goal.status == 'ARCHIVED' %}bg-secondary-soft{% endif %}">
+                            
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="fw-bold mb-1">
+                                        <i class="fas fa-{% if goal.status == 'COMPLETED' %}trophy{% elif goal.status == 'OVERDUE' %}clock{% else %}bullseye{% endif %} me-2 
+                                            {% if goal.status == 'COMPLETED' %}text-success{% elif goal.status == 'OVERDUE' %}text-danger{% else %}text-primary{% endif %}">
+                                        </i>
+                                        {{ goal.name }}
+                                    </h5>
+                                    <div class="d-flex align-items-center gap-3 mt-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            {{ goal.start_date|date:"M d, Y" }} → {{ goal.end_date|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                <!-- Enhanced Status Badge with emoji -->
+                                {% if goal.status == 'ACTIVE' %}
+                                    <span class="badge bg-primary px-3 py-2 rounded-pill">
+                                        <i class="fas fa-play me-1"></i>Active
+                                    </span>
+                                {% elif goal.status == 'COMPLETED' %}
+                                    <span class="badge bg-success px-3 py-2 rounded-pill">
+                                        <i class="fas fa-crown me-1"></i>Completed! 🎉
+                                    </span>
+                                {% elif goal.status == 'OVERDUE' %}
+                                    <span class="badge bg-danger px-3 py-2 rounded-pill pulse-badge">
+                                        <i class="fas fa-exclamation me-1"></i>Overdue! ⚠️
+                                    </span>
+                                {% elif goal.status == 'ARCHIVED' %}
+                                    <span class="badge bg-secondary px-3 py-2 rounded-pill">
+                                        <i class="fas fa-box me-1"></i>Archived
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Overdue Warning Message with animation -->
+                        {% if goal.status == 'OVERDUE' %}
+                        <div class="alert alert-danger py-2 mb-3 shake-animation">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>⚠️ Deadline passed!</strong> 
+                            <span class="d-block mt-1">You achieved {{ goal.calculate_progress.saved_percentage|floatformat:0 }}% of your goal.</span>
+                            {% if goal.days_overdue > 0 %}
+                            <small class="d-block mt-1">
+                                <i class="fas fa-hourglass-end me-1"></i>{{ goal.days_overdue }} days overdue
+                            </small>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Amount Info with progress rings -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <div class="amount-card bg-light rounded-3 p-3">
+                                    <small class="text-muted d-block mb-1">
+                                        <i class="fas fa-piggy-bank me-1 text-success"></i>Saved
+                                    </small>
+                                    <span class="fw-bold h4 mb-0 {% if goal.status == 'COMPLETED' %}text-success{% endif %}">
+                                        ₹{{ goal.current_saved_amount|floatformat:2 }}
+                                    </span>
+                                    {% if goal.status == 'COMPLETED' %}
+                                    <span class="badge bg-success-light text-success ms-2">✓ Goal Met</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="amount-card bg-light rounded-3 p-3 text-end">
+                                    <small class="text-muted d-block mb-1">
+                                        <i class="fas fa-flag-checkered me-1 text-primary"></i>Target
+                                    </small>
+    <span class="fw-bold h4 mb-0">₹{{ goal.amount_to_save|floatformat:2 }}</span>
+                                    <span class="badge bg-primary-light text-primary ms-2">Goal</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Progress Bar with percentage label -->
+                        <div class="progress-container mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="fw-bold text-muted">Progress</small>
+                                <small class="fw-bold 
+                                    {% if goal.calculate_progress.saved_percentage >= 100 %}text-success{% endif %}">
+                                    {{ goal.calculate_progress.saved_percentage|floatformat:1 }}%
+                                </small>
+                            </div>
+                            <div class="progress" style="height: 12px; border-radius: 6px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated 
+                                    {% if goal.status == 'COMPLETED' %}bg-success{% elif goal.status == 'OVERDUE' %}bg-danger{% else %}bg-primary{% endif %}"
+                                    role="progressbar" 
+                                    style="width: {{ goal.calculate_progress.saved_percentage }}%;"
+                                    aria-valuenow="{{ goal.calculate_progress.saved_percentage }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time Remaining with color coding -->
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded-3">
+                            <small class="text-muted">
+                                <i class="fas fa-hourglass-half me-1"></i>Time Left:
+                            </small>
+                            <small class="fw-bold 
+                                {% if goal.calculate_progress.days_remaining < 0 %}text-danger{% elif goal.calculate_progress.days_remaining < 7 %}text-warning{% else %}text-success{% endif %}">
+                                {% if goal.calculate_progress.days_remaining > 0 %}
+                                    {{ goal.calculate_progress.days_remaining }} days remaining
+                                    {% if goal.calculate_progress.days_remaining < 7 %}
+                                    <i class="fas fa-exclamation-triangle ms-1 text-warning"></i>
+                                    {% endif %}
+                                {% elif goal.calculate_progress.days_remaining < 0 %}
+                                    {{ goal.calculate_progress.days_overdue }} days overdue
+                                    <i class="fas fa-exclamation-circle ms-1 text-danger"></i>
+                                {% else %}
+                                    Due today!
+                                    <i class="fas fa-bell ms-1"></i>
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        {% if goal.status != 'ARCHIVED' and goal.status != 'COMPLETED' %}
+                        <div class="action-section">
+                            <!-- Add Amount Form -->
+                            <form method="post" action="{% url 'add_amount' goal.id %}" class="mb-3">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary-light border-0">₹</span>
+                                    <input type="number" name="additional_amount" class="form-control border-0 bg-light" 
+                                        placeholder="Enter amount" step="0.01" min="0" required>
+                                    <button type="submit" class="btn btn-primary hover-effect">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                <form method="post" action="{% url 'archive_goal' goal.id %}" class="flex-grow-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-archive w-100 hover-effect">
+                                        <i class="fas fa-archive"></i> Archive
+                                    </button>
+                                </form>
+                                
+                                {% if goal.status == 'OVERDUE' or goal.status == 'ACTIVE' %}
+                                <!-- Extend Deadline Button with inline modal trigger -->
+                                <button type="button" class="btn btn-outline-primary flex-grow-1 hover-effect" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#extendModal{{ goal.id }}">
+                                    <i class="fas fa-calendar-plus"></i> Extend
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% elif goal.status == 'COMPLETED' %}
+                        <div class="alert alert-success text-center py-3 mb-3 celebration-effect">
+                            <i class="fas fa-trophy fa-2x mb-2"></i>
+                            <h6 class="mb-1">🎉 Congratulations! 🎉</h6>
+                            <p class="small mb-2">You've achieved your savings goal!</p>
+                            <span class="badge bg-success-light text-success">
+                                <i class="fas fa-star"></i> Goal Completed <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        
+                        <!-- Reopen and Archive buttons for completed goals -->
+                        <div class="d-flex gap-2 mt-3">
+                            <!-- Reopen Goal Button -->
+                            <form method="post" action="{% url 'reopen_goal' goal.id %}" class="flex-grow-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-success w-100 hover-effect" 
+                                        onclick="return confirm('Are you sure you want to reopen this goal? It will become active again.');">
+                                    <i class="fas fa-redo-alt me-1"></i> Reopen Goal
+                                </button>
+                            </form>
+                            
+                            <!-- Archive Goal Button -->
+                            <form method="post" action="{% url 'archive_goal' goal.id %}" class="flex-grow-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-archive w-100 hover-effect">
+                                    <i class="fas fa-archive"></i> Archive
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+
+                        <!-- Delete button at the bottom -->
+                        {% if goal.status != 'ARCHIVED' %}
+                        <div class="mt-3 pt-2 border-top border-light">
+                            <form method="post" action="{% url 'delete_goal' goal.id %}"
+                                onsubmit="return confirm('Are you sure you want to permanently delete this goal? This action cannot be undone.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link text-danger p-0 small hover-effect">
+                                    <i class="fas fa-trash-alt me-1"></i>Permanently Delete Goal
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Extend Deadline Modal for this goal (inside the loop) -->
+                {% if goal.status == 'OVERDUE' or goal.status == 'ACTIVE' %}
+                <div class="modal fade" id="extendModal{{ goal.id }}" tabindex="-1" aria-labelledby="extendModalLabel{{ goal.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0">
+                            <div class="modal-header bg-primary-soft border-0">
+                                <h5 class="modal-title fw-bold" id="extendModalLabel{{ goal.id }}">
+                                    <i class="fas fa-calendar-plus text-primary me-2"></i>
+                                    Extend Deadline
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" action="{% url 'extend_deadline' goal.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <p class="mb-3">Extend deadline for <strong>"{{ goal.name }}"</strong></p>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">New End Date</label>
+                                        <input type="date" name="end_date" class="form-control form-control-lg" 
+                                            min="{{ today|date:'Y-m-d' }}" required>
+                                        <small class="text-muted mt-2 d-block">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Choose a new realistic deadline for your goal
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary hover-effect">
+                                        <i class="fas fa-check-circle me-1"></i>Extend Deadline
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5 empty-state">
+                    <div class="empty-state-icon mb-4">
+                        <i class="fas fa-bullseye fa-5x text-primary opacity-50"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">No Goals Yet</h3>
+                    <p class="text-muted mb-4">Start your savings journey today! Set your first financial goal and track your progress.</p>
+                    <a href="{% url 'add_goal' %}" class="btn btn-primary btn-lg px-5 py-3 hover-effect">
+                        <i class="fas fa-plus me-2"></i>Create Your First Goal
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Archived Goals Section -->
+        {% if archived_goals %}
+        <div class="mt-5" id="archived-section">
+            <div class="d-flex align-items-center mb-4 fade-in">
+                <h4 class="fw-bold mb-0">
+                    <i class="fas fa-archive me-2 text-secondary"></i>Archived Goals
+                </h4>
+                <span class="badge bg-secondary-light text-secondary ms-2">{{ archived_goals.count }}</span>
+            </div>
+            
+            <div class="row g-4">
+                {% for goal in archived_goals %}
+                <div class="col-lg-6 stagger-item">
+                    <div class="card border-0 h-100 goal-card archived-goal-card" 
+                        style="animation-delay: {{ forloop.counter0|add:1|stringformat:'.1f' }}s;">
+                        <div class="card-body">
+                            <!-- Goal Header -->
+                            <div class="goal-header mb-3 p-3 rounded-3 bg-secondary-soft">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">
+                                            <i class="fas fa-archive me-2 text-secondary"></i>
+                                            {{ goal.name }}
+                                        </h5>
+                                        <div class="d-flex align-items-center gap-3 mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                {{ goal.start_date|date:"M d, Y" }} → {{ goal.end_date|date:"M d, Y" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-secondary px-3 py-2 rounded-pill">
+                                        <i class="fas fa-box me-1"></i>Archived
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Amount Info -->
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <div class="amount-card bg-light rounded-3 p-3">
+                                        <small class="text-muted d-block mb-1">
+                                            <i class="fas fa-piggy-bank me-1 text-success"></i>Saved
+                                        </small>
+                                        <span class="fw-bold h4 mb-0">
+                                            ₹{{ goal.current_saved_amount|floatformat:2 }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="amount-card bg-light rounded-3 p-3 text-end">
+                                        <small class="text-muted d-block mb-1">
+                                            <i class="fas fa-flag-checkered me-1 text-primary"></i>Target
+                                        </small>
+                                        <span class="fw-bold h4 mb-0">₹{{ goal.amount_to_save|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress -->
+                            <div class="progress-container mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="fw-bold text-muted">Progress</small>
+                                    <small class="fw-bold text-secondary">
+                                        {{ goal.calculate_progress.saved_percentage|floatformat:1 }}%
+                                    </small>
+                                </div>
+                                <div class="progress" style="height: 12px; border-radius: 6px;">
+                                    <div class="progress-bar bg-secondary"
+                                        role="progressbar" 
+                                        style="width: {{ goal.calculate_progress.saved_percentage }}%;"
+                                        aria-valuenow="{{ goal.calculate_progress.saved_percentage }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 mt-4">
+                                <!-- Unarchive Button -->
+                                <form method="post" action="{% url 'unarchive_goal' goal.id %}" class="flex-grow-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-unarchive w-100 hover-effect"
+                                        onclick="return confirm('Are you sure you want to restore this goal to Active status?');">
+                                        <i class="fas fa-box-open me-2"></i>Unarchive
+                                    </button>
+                                </form>
+                                
+                                <!-- Delete Button -->
+                                <form method="post" action="{% url 'delete_goal' goal.id %}" class="flex-grow-1">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-delete w-100 hover-effect"
+                                        onclick="return confirm('Are you sure you want to permanently delete this goal? This action cannot be undone.');">
+                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <style>
+    /* Color variables */
+    :root {
+        --primary-soft: rgba(78, 115, 223, 0.1);
+        --success-soft: rgba(28, 200, 138, 0.1);
+        --danger-soft: rgba(231, 74, 59, 0.1);
+        --warning-soft: rgba(255, 193, 7, 0.1);
+        --secondary-soft: rgba(133, 135, 150, 0.1);
+        
+        /* Status colors */
+        --active-color: #4e73df;
+        --completed-color: #1cc88a;
+        --overdue-color: #e74a3b;
+        --archived-color: #858796;
+        
+        /* Button gradient colors */
+        --archive-start: #f59e0b;
+        --archive-end: #d97706;
+        --unarchive-start: #0d9488;
+        --unarchive-end: #0f766e;
+        --delete-start: #dc2626;
+        --delete-end: #b91c1c;
+    }
+
+    /* Dark mode variables */
+    [data-theme="dark"] {
+        --archive-start: #fbbf24;
+        --archive-end: #d97706;
+        --unarchive-start: #14b8a6;
+        --unarchive-end: #0d9488;
+        --delete-start: #ef4444;
+        --delete-end: #dc2626;
+    }
+
+    /* Background utilities */
+    .bg-primary-soft { background: var(--primary-soft); }
+    .bg-success-soft { background: var(--success-soft); }
+    .bg-danger-soft { background: var(--danger-soft); }
+    .bg-warning-soft { background: var(--warning-soft); }
+    .bg-secondary-soft { background: var(--secondary-soft); }
+
+    .bg-primary-light { background: rgba(78, 115, 223, 0.15); }
+    .bg-success-light { background: rgba(28, 200, 138, 0.15); }
+    .bg-danger-light { background: rgba(231, 74, 59, 0.15); }
+    .bg-secondary-light { background: rgba(133, 135, 150, 0.15); }
+
+    /* Text colors */
+    .text-primary-light { color: #4e73df; }
+    .text-success-light { color: #1cc88a; }
+    .text-danger-light { color: #e74a3b; }
+    .text-active { color: #4e73df; }
+    .text-completed { color: #1cc88a; }
+    .text-overdue { color: #e74a3b; }
+    .text-archived { color: #858796; }
+
+    /* Gradient text */
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* ========== BUTTON STYLES ========== */
+
+    /* Archive Button - Orange/Amber Theme */
+    .btn-archive {
+        background: linear-gradient(135deg, var(--archive-start) 0%, var(--archive-end) 100%);
+        color: white;
+        border: none;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-archive:hover {
+        background: linear-gradient(135deg, var(--archive-end) 0%, var(--archive-start) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+        color: white;
+    }
+
+    .btn-archive:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Unarchive Button - Teal/Blue Theme */
+    .btn-unarchive {
+        background: linear-gradient(135deg, var(--unarchive-start) 0%, var(--unarchive-end) 100%);
+        color: white;
+        border: none;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(13, 148, 136, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-unarchive:hover {
+        background: linear-gradient(135deg, var(--unarchive-end) 0%, var(--unarchive-start) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(13, 148, 136, 0.4);
+        color: white;
+    }
+
+    .btn-unarchive:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(13, 148, 136, 0.3);
+    }
+
+    /* Delete Button - Red Theme */
+    .btn-delete {
+        background: linear-gradient(135deg, var(--delete-start) 0%, var(--delete-end) 100%);
+        color: white;
+        border: none;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, var(--delete-end) 0%, var(--delete-start) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+        color: white;
+    }
+
+    .btn-delete:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+    }
+
+    /* ========== GLASS MORPHISM ========== */
+    .goal-card, .archived-goal-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    [data-theme="dark"] .goal-card,
+    [data-theme="dark"] .archived-goal-card {
+        background: rgba(45, 55, 72, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* ========== CARD EFFECTS ========== */
+    .goal-card {
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .goal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .archived-goal-card {
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        border-left: 4px solid #858796;
+    }
+
+    .archived-goal-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-left-color: #0d9488;
+    }
+
+    /* Archived card special styling */
+    .archived-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .archived-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(133, 135, 150, 0.3);
+    }
+
+    .archived-card:hover .kpi-icon {
+        background: rgba(13, 148, 136, 0.2);
+    }
+
+    .archived-card:hover .kpi-icon i {
+        color: #0d9488 !important;
+    }
+
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .hover-effect {
+        transition: all 0.3s ease;
+    }
+
+    .hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .border-warning-glow {
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-20px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .slide-in { animation: slideIn 0.5s ease-out; }
+
+    .stagger-item {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    .stagger-item:nth-child(1) { animation-delay: 0.1s; }
+    .stagger-item:nth-child(2) { animation-delay: 0.2s; }
+    .stagger-item:nth-child(3) { animation-delay: 0.3s; }
+    .stagger-item:nth-child(4) { animation-delay: 0.4s; }
+    .stagger-item:nth-child(5) { animation-delay: 0.5s; }
+    .stagger-item:nth-child(6) { animation-delay: 0.6s; }
+
+.pulse-animation { animation: pulse 2s infinite; }
+.bounce-animation { animation: bounce 2s infinite; }
+.shake-animation { animation: shake 0.5s; }
+.float-animation { animation: float 3s infinite; }
+
+.pulse-badge {
+    animation: pulse 2s infinite;
+}
+
+/* KPI Icons */
+.kpi-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Amount cards */
+.amount-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.amount-card:hover {
+    background: white !important;
+    border-color: #dee2e6;
+    transform: scale(1.02);
+}
+
+/* Progress bar */
+.progress {
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Celebration effect */
+.celebration-effect {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+/* Empty state */
+.empty-state-icon {
+    animation: float 3s infinite;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Input group styling */
+.input-group-text {
+    border-radius: 8px 0 0 8px;
+}
+
+.form-control {
+    border-radius: 8px;
+}
+
+/* Modal styling */
+.modal-content {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stagger-item {
+        animation-delay: 0s !important;
+    }
+    
+    .goal-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .kpi-icon i {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Stack buttons on mobile */
+    .d-flex.gap-2 {
+        flex-direction: column;
+    }
+    
+    .d-flex.gap-2 .flex-grow-1 {
+        width: 100%;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+</style>
+
+<!-- Add Font Awesome for icons if not already in base.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+<!-- Bootstrap JS bundle is loaded in base.html -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.goal-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Animate progress bars on view
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+
+    // FIX FOR MODAL BACKDROP ISSUE
+    // Use event delegation to handle all modal close events
+    document.addEventListener('hidden.bs.modal', function(event) {
+        // Safely remove modal-open class and any leftover backdrops
+        document.body.classList.remove('modal-open');
+        
+        // Remove all modal backdrops
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+            backdrop.remove();
+        });
+        
+        // Reset body styles
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    });
+
+    // Also handle when modals are shown to ensure proper state
+    document.addEventListener('shown.bs.modal', function(event) {
+        // Ensure only one backdrop exists
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            // Remove extra backdrops, keep the first one
+            for (let i = 1; i < backdrops.length; i++) {
+                backdrops[i].remove();
+            }
+        }
+    });
+
+    // Handle page navigation/refresh to clean up any stuck states
+    window.addEventListener('pagehide', function() {
+        document.body.classList.remove('modal-open');
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    });
+});
+
+// Chart.js Error Prevention Script
+(function() {
+    // Prevent Chart.js errors by safely handling chart initialization
+    if (typeof Chart !== 'undefined') {
+        console.log('Chart.js detected - adding safety wrapper');
+        
+        // Store the original Chart constructor
+        const OriginalChart = Chart;
+        
+        // Override Chart constructor to check for canvas
+        window.Chart = function(context, config) {
+            // Check if context is valid
+            if (!context) {
+                console.warn('Chart initialization skipped: Invalid context');
+                return createDummyChart();
+            }
+            
+            // If context is a string (ID), check if element exists
+            if (typeof context === 'string') {
+                const element = document.getElementById(context);
+                if (!element) {
+                    console.warn(`Chart initialization skipped: Element with ID '${context}' not found`);
+                    return createDummyChart();
+                }
+            }
+            
+            // If everything is valid, create the chart
+            try {
+                return new OriginalChart(context, config);
+            } catch (error) {
+                console.error('Chart creation failed:', error);
+                return createDummyChart();
+            }
+        };
+        
+        // Copy static methods and properties
+        Object.assign(Chart, OriginalChart);
+    }
+    
+    function createDummyChart() {
+        return {
+            destroy: function() {},
+            update: function() {},
+            render: function() {},
+            stop: function() {},
+            resize: function() {},
+            clear: function() {},
+            toBase64Image: function() { return ''; },
+            generateLegend: function() { return ''; }
+        };
+    }
+})();
+</script>
+{% endblock %}
+

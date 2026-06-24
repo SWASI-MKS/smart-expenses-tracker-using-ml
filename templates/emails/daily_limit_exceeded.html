@@ -1,0 +1,53 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Daily Limit Exceeded - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">⚠️ Daily Expense Limit Exceeded</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    <p>We wanted to let you know that you've exceeded your daily expense limit today.</p>
+    
+    <div class="info-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <div>
+                <div class="info-label">Daily Limit</div>
+                <div class="info-value">₹{{ limit }}</div>
+            </div>
+            <div>
+                <div class="info-label">Amount Spent</div>
+                <div class="info-value" style="color: #dc2626;">₹{{ spent }}</div>
+            </div>
+            <div>
+                <div class="info-label">Overage</div>
+                <div class="info-value" style="color: #dc2626;">₹{{ overage }}</div>
+            </div>
+        </div>
+        <div class="info-label">Date</div>
+        <div class="info-value">{{ date }}</div>
+    </div>
+    
+    <div class="alert-box">
+        <strong>Tip:</strong> Review your expenses to understand where you can cut back. 
+        Consider setting a more realistic budget or adjusting your spending habits.
+    </div>
+    
+    <p>To manage your expenses and set new limits, click the button below:</p>
+    
+    <center>
+        <a href="{{ site_url }}/dashboard" class="btn">View Dashboard</a>
+    </center>
+    
+    <p style="margin-top: 30px;">
+        If you believe this is an error or need to adjust your daily limit, 
+        please contact our support team.
+    </p>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        You're receiving this email because you have daily expense limits enabled in your account.
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="page-title">
+            <i class="bi bi-pencil-square me-2"></i>Edit Expense
+        </h3>
+        <a href="{% url 'expenses' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Expenses
+        </a>
+    </div>
+
+    {% include 'partials/_messages.html' %}
+
+    <div class="card edit-card">
+        <div class="card-body p-4">
+
+            <form method="POST" enctype="multipart/form-data" id="editExpenseForm">
+                {% csrf_token %}
+
+                <!-- Display Form Errors -->
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <!-- Row for Amount and Date -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="bi bi-currency-rupee me-1 text-primary"></i>Amount
+                        </label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.amount.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar me-1 text-primary"></i>Date
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.date.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-clock me-1 text-primary"></i>Time
+                        </label>
+                        <input type="time" name="time" class="form-control form-input" 
+                               value="{{ expense.time|time:'H:i' }}" step="60">
+                        <small class="text-muted">Optional</small>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-card-text me-1 text-primary"></i>Description
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.description.errors %}
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Row for Category and Payment Method -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="bi bi-tag me-1 text-primary"></i>Category
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.category.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="bi bi-credit-card me-1 text-primary"></i>Payment Method
+                        </label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.payment_method.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Row for Tags and Recurring -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="bi bi-tags me-1 text-primary"></i>Tags (comma-separated)
+                        </label>
+                        {{ form.tags }}
+                        <small class="text-muted">e.g., office, travel, urgent</small>
+                        {% if form.tags.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.tags.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="bi bi-arrow-repeat me-1 text-primary"></i>Recurring Settings
+                        </label>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div class="form-check">
+                                {{ form.is_recurring }}
+                                <label class="form-check-label" for="{{ form.is_recurring.id_for_label }}">
+                                    Is Recurring
+                                </label>
+                            </div>
+                        </div>
+                        {{ form.recurring_frequency }}
+                        {% if form.recurring_frequency.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.recurring_frequency.errors %}
+                            <i class="bi bi-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Receipt Section -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-receipt me-1 text-primary"></i>Receipt
+                    </label>
+                    <div class="receipt-upload-area">
+                        {{ form.receipt }}
+                        {% if expense.receipt %}
+                        <div class="current-receipt mt-2 p-2 bg-light rounded">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span class="ms-2">Current receipt: {{ expense.receipt.name|slice:":30" }}{% if expense.receipt.name|length > 30 %}...{% endif %}</span>
+                            <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if form.receipt.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.receipt.errors %}
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="bi bi-pencil me-1 text-primary"></i>Notes
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <div class="text-danger small mt-1">
+                        {% for error in form.notes.errors %}
+                        <i class="bi bi-exclamation-circle"></i> {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-3 justify-content-end">
+                    <a href="{% url 'expenses' %}" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-x-lg me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success px-5">
+                        <i class="bi bi-check-lg me-2"></i>Update Expense
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* ================= PAGE TITLE ================= */
+    .page-title {
+        font-weight: 700;
+        font-size: 1.9rem;
+        background: linear-gradient(135deg, #4361ee, #7b2cbf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0;
+    }
+
+    /* ================= EDIT CARD ================= */
+    .edit-card {
+        border: none !important;
+        border-radius: 20px !important;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1) !important;
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ================= FORM LABELS ================= */
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    /* ================= FORM INPUTS ================= */
+    .form-input, 
+    .edit-card input[type="text"],
+    .edit-card input[type="number"],
+    .edit-card input[type="date"],
+    .edit-card input[type="time"],
+    .edit-card select,
+    .edit-card textarea {
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        border: 2px solid #e2e8f0 !important;
+        transition: all 0.2s ease;
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    .form-input:hover,
+    .edit-card input:hover,
+    .edit-card select:hover,
+    .edit-card textarea:hover {
+        border-color: #4361ee !important;
+    }
+
+    .form-input:focus,
+    .edit-card input:focus,
+    .edit-card select:focus,
+    .edit-card textarea:focus {
+        border-color: #4361ee !important;
+        box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15) !important;
+        outline: none;
+    }
+
+    /* ================= CHECKBOX ================= */
+    .form-check-input {
+        width: 1.2rem;
+        height: 1.2rem;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: #4361ee;
+        border-color: #4361ee;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* ================= RECEIPT UPLOAD AREA ================= */
+    .receipt-upload-area {
+        border: 2px dashed #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .receipt-upload-area:hover {
+        border-color: #4361ee;
+        background: #f8f9ff;
+    }
+
+    .current-receipt {
+        display: flex;
+        align-items: center;
+        border: 1px solid #e2e8f0;
+        font-size: 0.9rem;
+    }
+
+    /* ================= BUTTONS ================= */
+    .btn {
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #06d6a0, #04b386);
+        border: none;
+        color: white;
+        box-shadow: 0 4px 15px rgba(6, 214, 160, 0.3);
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(6, 214, 160, 0.4);
+        color: white;
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-outline-secondary:hover {
+        background: #f8f9ff;
+        border-color: #4361ee;
+        color: #4361ee;
+        transform: translateY(-2px);
+    }
+
+    /* ================= ALERTS ================= */
+    .alert-danger {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        border-radius: 12px;
+        color: #c53030;
+    }
+
+    /* ================= DARK MODE ================= */
+    body.dark .edit-card {
+        background: #1f2937;
+    }
+
+    body.dark .form-label {
+        color: #e2e8f0;
+    }
+
+    body.dark .form-input,
+    body.dark .edit-card input,
+    body.dark .edit-card select,
+    body.dark .edit-card textarea {
+        background: #2d3748 !important;
+        border-color: #4a5568 !important;
+        color: #f7fafc !important;
+    }
+
+    body.dark .form-input::placeholder,
+    body.dark .edit-card input::placeholder,
+    body.dark .edit-card textarea::placeholder {
+        color: #a0aec0;
+    }
+
+    body.dark .receipt-upload-area {
+        border-color: #4a5568;
+    }
+
+    body.dark .receipt-upload-area:hover {
+        background: #2d3748;
+    }
+
+    body.dark .current-receipt {
+        background: #2d3748 !important;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    body.dark .btn-outline-secondary {
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    body.dark .btn-outline-secondary:hover {
+        background: #2d3748;
+        border-color: #4361ee;
+        color: white;
+    }
+
+    body.dark .alert-danger {
+        background: #742a2a;
+        border-color: #9b2c2c;
+        color: #fed7d7;
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .edit-card .card-body {
+            padding: 1.5rem !important;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .d-flex.gap-3 {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<!-- Include Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle recurring frequency visibility based on checkbox
+        const recurringCheckbox = document.getElementById('{{ form.is_recurring.id_for_label }}');
+        const frequencySelect = document.getElementById('{{ form.recurring_frequency.id_for_label }}');
+        
+        if (recurringCheckbox && frequencySelect) {
+            // Initial state
+            frequencySelect.disabled = !recurringCheckbox.checked;
+            
+            // On change
+            recurringCheckbox.addEventListener('change', function() {
+                frequencySelect.disabled = !this.checked;
+                if (this.checked) {
+                    frequencySelect.style.opacity = '1';
+                } else {
+                    frequencySelect.style.opacity = '0.6';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

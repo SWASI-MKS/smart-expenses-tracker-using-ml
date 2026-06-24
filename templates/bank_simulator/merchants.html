@@ -1,0 +1,86 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>🏪 Merchant Insights</h1>
+</div>
+
+<!-- Top Merchants -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-ranking-star"></i> Top Merchants
+    </div>
+    {% if merchants %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Merchant</th>
+                <th>Transactions</th>
+                <th>Total Spent</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for merchant in merchants %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <div class="transaction-icon" style="width: 32px; height: 32px; font-size: 14px; background: #dbeafe; color: #2563eb;">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <span style="margin-left: 12px; font-weight: 600;">{{ merchant.merchant_name|default:"Unknown" }}</span>
+                    </div>
+                </td>
+                <td>{{ merchant.count }}</td>
+                <td style="color: #dc2626; font-weight: 600;">₹ {{ merchant.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-store"></i>
+        <p>No merchant data yet</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recurring Subscriptions -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-repeat"></i> Recurring Subscriptions
+    </div>
+    {% if recurring %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Merchant</th>
+                <th>Times Charged</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in recurring %}
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <div class="transaction-icon" style="width: 32px; height: 32px; font-size: 14px; background: #dcfce7; color: #16a34a;">
+                            <i class="fa-solid fa-rotate"></i>
+                        </div>
+                        <span style="margin-left: 12px; font-weight: 600;">{{ sub.merchant_name }}</span>
+                    </div>
+                </td>
+                <td>{{ sub.count }}</td>
+                <td style="color: #dc2626; font-weight: 600;">₹ {{ sub.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-rotate"></i>
+        <p>No recurring payments detected</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,139 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>💳 My Cards</h1>
+    <button class="btn btn-primary" onclick="document.getElementById('addCardModal').style.display='flex'">
+        <i class="fa-solid fa-plus"></i> Add Card
+    </button>
+</div>
+
+<!-- Add Card Modal -->
+<div id="addCardModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:var(--card); padding:24px; border-radius:12px; max-width:500px; width:90%;">
+        <h3>Add New Card</h3>
+        <form method="POST" action="{% url 'add-card' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Card Name</label>
+                <input type="text" name="card_name" class="form-input" placeholder="e.g. HDFC Debit Card" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bank Name</label>
+                <input type="text" name="bank_name" class="form-input" placeholder="e.g. HDFC Bank">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Card Type</label>
+                <select name="card_type" class="form-select">
+                    <option value="DEBIT">Debit Card</option>
+                    <option value="CREDIT">Credit Card</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Card Brand</label>
+                <select name="card_brand" class="form-select">
+                    <option value="VISA">Visa</option>
+                    <option value="MASTERCARD">Mastercard</option>
+                    <option value="RUPAY">RuPay</option>
+                    <option value="AMEX">American Express</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last 4 Digits</label>
+                <input type="text" name="last_four_digits" class="form-input" maxlength="4" placeholder="1234" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Credit Limit (for credit cards)</label>
+                <input type="number" name="credit_limit" class="form-input" placeholder="e.g. 50000">
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Add Card</button>
+            <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('addCardModal').style.display='none'" style="margin-top:8px;">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Cards List -->
+{% if cards %}
+    {% for card in cards %}
+    <div class="card-item {% if card.card_type == 'DEBIT' %}light{% endif %}">
+        <div class="card-icon">
+            <i class="fa-brands fa-cc-{{ card.card_brand|lower }}"></i>
+        </div>
+        <div class="card-details">
+            <div class="card-name">{{ card.card_name }}</div>
+            <div class="card-number">**** **** **** {{ card.last_four_digits }}</div>
+            {% if card.card_type == 'CREDIT' and card.credit_limit %}
+            <div class="progress-container">
+                {% for util in cards_utilization %}
+                    {% if util.card.id == card.id %}
+                    <div class="progress-bar">
+                        <div class="progress-fill {% if util.utilization >= 80 %}danger{% elif util.utilization >= 50 %}warning{% endif %}" 
+                             style="width: {{ util.utilization }}%"></div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-info">
+            {% if card.card_type == 'CREDIT' %}
+            <div class="card-label">Available Credit</div>
+            <div class="card-balance">₹ {{ card.available_credit|default:card.credit_limit|default:"0" }}</div>
+            {% else %}
+            <div class="card-label">Debit Card</div>
+            {% endif %}
+            <div class="card-label" style="margin-top:8px;">
+                <span class="status-badge {% if card.is_active %}success{% else %}failed{% endif %}">
+                    {% if card.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Card Transactions Link -->
+    <div class="section-card" style="margin-top:-10px;">
+        <a href="{% url 'card-transactions' card.id %}" class="btn btn-secondary btn-block">
+            <i class="fa-solid fa-list"></i> View Transactions
+        </a>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="section-card">
+    <div class="empty-state">
+        <i class="fa-solid fa-credit-card"></i>
+        <p>No cards added yet</p>
+        <button class="btn btn-primary" onclick="document.getElementById('addCardModal').style.display='flex'">
+            Add Your First Card
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Credit Utilization Summary -->
+{% if cards_utilization %}
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-chart-pie"></i> Credit Utilization
+    </div>
+    {% for card_util in cards_utilization %}
+        {% if card_util.credit_limit %}
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <strong>{{ card_util.card.card_name }}</strong>
+                <span>{{ card_util.utilization }}%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="background: var(--border);">
+                    <div class="progress-fill {% if card_util.utilization >= 80 %}danger{% elif card_util.utilization >= 50 %}warning{% endif %}" 
+                         style="width: {{ card_util.utilization }}%"></div>
+                </div>
+            </div>
+            <div class="stat-label">₹{{ card_util.total_spent }} of ₹{{ card_util.credit_limit }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+

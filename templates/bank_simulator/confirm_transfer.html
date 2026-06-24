@@ -1,0 +1,56 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>✅ Confirm Transfer</h1>
+    <a href="{% url 'send-money' %}" class="btn btn-secondary">← Cancel</a>
+</div>
+
+<!-- Step Indicator -->
+<div class="tabs" style="margin-bottom: 20px;">
+    <div class="tab">1. Recipient</div>
+    <div class="tab active">2. Confirm</div>
+    <div class="tab">3. PIN</div>
+</div>
+
+<div class="section-card" style="text-align: center;">
+    <div style="padding: 20px;">
+        <p style="color: var(--muted); margin-bottom: 8px;">You are sending</p>
+        <div class="balance-amount" style="font-size: 42px; color: var(--primary);">₹ {{ transfer.amount }}</div>
+        
+        <div style="background: var(--bg); padding: 20px; border-radius: 12px; margin: 24px 0; text-align: left;">
+            <p style="margin: 0 0 8px; color: var(--muted); font-size: 13px;">To</p>
+            <div style="font-size: 18px; font-weight: 600;">{{ transfer.beneficiary.name }}</div>
+            <div style="color: var(--muted); font-size: 14px;">
+                {% if transfer.beneficiary.upi_id %}{{ transfer.beneficiary.upi_id }}{% else %}Account: {{ transfer.beneficiary.account_number }}{% endif %}
+            </div>
+        </div>
+        
+        {% if transfer.note %}
+        <div style="font-style: italic; color: var(--muted); margin: 16px 0;">
+            "{{ transfer.note }}"
+        </div>
+        {% endif %}
+        
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted);">Available Balance</span>
+            <span style="font-weight: 600;">₹ {{ account.balance }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+            <span style="color: var(--muted);">After Transfer</span>
+            <span style="font-weight: 600;">₹ {{ account.balance|add:transfer.amount|stringformat:"-.2f" }}</span>
+        </div>
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary btn-block" style="padding: 16px; margin-top: 16px;">
+            <i class="fa-solid fa-check"></i> Confirm & Send
+        </button>
+    </form>
+    <a href="{% url 'send-money' %}">
+        <button class="btn btn-secondary btn-block" style="margin-top: 8px;">Cancel</button>
+    </a>
+</div>
+{% endblock %}
+

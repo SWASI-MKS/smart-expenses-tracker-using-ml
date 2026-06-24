@@ -1,0 +1,75 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>🔔 Alerts Center</h1>
+    {% if alerts %}
+    <form method="POST" action="{% url 'mark-all-alerts-read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">
+            <i class="fa-solid fa-check-double"></i> Mark All Read
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- Alerts List -->
+{% if alerts %}
+    {% for alert in alerts %}
+    <div class="section-card" style="{% if not alert.is_read %}border-left: 4px solid #2563eb;{% endif %}">
+        <div class="transaction-item" style="border: none; padding: 0;">
+            <div class="transaction-icon" style="background: 
+                {% if alert.priority == 'HIGH' or alert.priority == 'CRITICAL' %}#fef2f2
+                {% elif alert.priority == 'MEDIUM' %}#fef3c7
+                {% else %}#dbeafe{% endif %}; 
+                color: 
+                {% if alert.priority == 'HIGH' or alert.priority == 'CRITICAL' %}#dc2626
+                {% elif alert.priority == 'MEDIUM' %}#f59e0b
+                {% else %}#2563eb{% endif %};">
+                <i class="fa-solid 
+                    {% if alert.alert_type == 'CREDIT_LIMIT' %}fa-credit-card
+                    {% elif alert.alert_type == 'LARGE_TRANSACTION' %}fa-exclamation-circle
+                    {% elif alert.alert_type == 'RECURRING_RENEWAL' %}fa-repeat
+                    {% elif alert.alert_type == 'SPENDING_INCREASE' %}fa-chart-line
+                    {% elif alert.alert_type == 'LOW_BALANCE' %}fa-wallet
+                    {% else %}fa-bell{% endif %}"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">
+                    {{ alert.title }}
+                    <span class="status-badge 
+                        {% if alert.priority == 'CRITICAL' %}failed
+                        {% elif alert.priority == 'HIGH' %}pending
+                        {% elif alert.priority == 'MEDIUM' %}processing
+                        {% else %}success{% endif %}" 
+                        style="margin-left: 8px;">
+                        {{ alert.get_priority_display }}
+                    </span>
+                </div>
+                <div class="transaction-subtitle">{{ alert.message }}</div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">
+                    {{ alert.created_at|date:"d M Y, H:i" }}
+                </div>
+            </div>
+            {% if not alert.is_read %}
+            <form method="POST" action="{% url 'mark-alert-read' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="alert_id" value="{{ alert.id }}">
+                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                    Mark Read
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="section-card">
+    <div class="empty-state">
+        <i class="fa-solid fa-bell-slash"></i>
+        <p>No alerts yet</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,58 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}{% if is_unusual %}Unusual{% endif %} Large Transaction - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">💰 Large Transaction Alert</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    {% if is_unusual %}
+    <div class="alert-box alert-box-danger">
+        <strong>⚠️ Unusual Transaction Detected:</strong> 
+        This transaction is significantly larger than your normal spending. Please verify it's legitimate.
+    </div>
+    {% else %}
+    <p>We wanted to notify you about a large transaction on your account.</p>
+    {% endif %}
+    
+    <div class="info-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <div>
+                <div class="info-label">Amount</div>
+                <div class="info-value" style="font-size: 24px; color: #dc2626;">₹{{ amount }}</div>
+            </div>
+            <div>
+                <div class="info-label">Type</div>
+                <div class="info-value">{{ transaction_type }}</div>
+            </div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <div class="info-label">Description</div>
+            <div class="info-value">{{ description }}</div>
+        </div>
+        <div>
+            <div class="info-label">Time</div>
+            <div class="info-value">{{ timestamp }}</div>
+        </div>
+        <div style="margin-top: 15px;">
+            <div class="info-label">Alert Threshold</div>
+            <div class="info-value">₹{{ threshold }}</div>
+        </div>
+    </div>
+    
+    <center>
+        <a href="{{ site_url }}/bank" class="btn">View Transactions</a>
+    </center>
+    
+    <p style="margin-top: 30px;">
+        If you don't recognize this transaction, please contact our support team immediately.
+    </p>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        You're receiving this email because you have large transaction alerts enabled.
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>✅ Payment Successful</h1>
+</div>
+
+<!-- Success Animation and Notification -->
+<div class="section-card" style="text-align: center; animation: fadeInUp 0.5s ease;">
+    <!-- Success Animation -->
+    <div style="width: 80px; height: 80px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px; animation: scaleIn 0.5s ease 0.2s both;">
+        ✓
+    </div>
+    
+    <h2 style="color: #16a34a; margin: 0 0 8px;">Payment Successful!</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">Your money has been sent successfully</p>
+    
+    <div class="balance-amount" style="font-size: 42px; margin: 16px 0; animation: slideIn 0.5s ease 0.3s both;">
+        ₹ {{ transfer.amount }}
+    </div>
+    
+    <!-- Auto-detected Category Badge -->
+    {% if transfer.note %}
+    <div style="margin: 16px auto; max-width: 300px; animation: slideIn 0.5s ease 0.4s both;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg); border-radius: 20px; border: 1px solid var(--border);">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+            <span style="font-size: 0.9rem; color: var(--muted);">Expense auto-categorized</span>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Expense Created Notification -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px; margin: 20px 0; text-align: left; animation: slideIn 0.5s ease 0.5s both;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #16a34a;">
+                <i class="fa-solid fa-receipt"></i>
+            </div>
+            <div>
+                <div style="font-weight: 600; color: #16a34a;">Expense Record Created</div>
+                <div style="font-size: 0.85rem; color: var(--muted);">Automatically added to your expense tracker</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Receipt -->
+    <div style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: left; margin: 24px 0; animation: slideIn 0.5s ease 0.6s both;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Transaction ID</span>
+            <span style="font-weight: 600;">{{ transfer.transaction_id }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Sent To</span>
+            <span style="font-weight: 600;">{{ transfer.beneficiary.name }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Date & Time</span>
+            <span style="font-weight: 600;">{{ transfer.created_at|date:"d M Y, H:i" }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Status</span>
+            <span class="status-badge success">{{ transfer.status }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Balance Before</span>
+            <span style="font-weight: 600; text-decoration: line-through; color: #ef4444;">₹ {{ transfer.balance_before }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Balance After</span>
+            <span style="font-weight: 600; color: #10B981;">₹ {{ transfer.balance_after }}</span>
+        </div>
+        {% if transfer.note %}
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+            <span style="color: var(--muted); font-size: 14px;">Description</span>
+            <span style="font-weight: 600;">{{ transfer.note }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Action Buttons -->
+    <div style="animation: slideIn 0.5s ease 0.7s both;">
+        <a href="{% url 'bank-dashboard' %}">
+            <button class="btn btn-primary btn-block" style="padding: 16px;">Done</button>
+        </a>
+        <a href="{% url 'transaction-history' %}">
+            <button class="btn btn-secondary btn-block" style="margin-top: 8px;">View Transactions</button>
+        </a>
+        <a href="{% url 'dashboard' %}">
+            <button class="btn btn-outline btn-block" style="margin-top: 8px; border: 1px solid var(--border);">View Expenses</button>
+        </a>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+        }
+        to {
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .balance-amount {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.02);
+        }
+    }
+</style>
+
+<!-- Auto-redirect notification toast -->
+<div id="toast" style="position: fixed; bottom: 20px; right: 20px; background: #10B981; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; z-index: 1000; animation: slideInRight 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="fa-solid fa-check-circle" style="font-size: 20px;"></i>
+        <span>Expense has been added to your tracker!</span>
+    </div>
+</div>
+
+<script>
+    // Show toast notification
+    document.addEventListener('DOMContentLoaded', function() {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            setTimeout(function() {
+                toast.style.display = 'block';
+            }, 1000);
+            
+            // Hide after 5 seconds
+            setTimeout(function() {
+                toast.style.display = 'none';
+            }, 6000);
+        }
+    });
+</script>
+
+<style>
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+{% endblock %}
+

@@ -1,0 +1,524 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if messages %}
+        {% include 'partials/_messages.html' %}
+    {% else %}
+        <!-- Page Header with Icon -->
+        <div class="d-flex align-items-center mb-4">
+            <div class="forecast-icon me-3">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div>
+                <h1 class="page-title mb-1">Expense Forecast</h1>
+                <p class="text-muted">Next 30 Days Prediction</p>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="summary-card total-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="summary-icon me-3">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <div>
+                                <h6 class="summary-label">Total Predicted Expense</h6>
+                                <h2 class="summary-value mb-0">{{ total_forecasted_expenses }}</h2>
+                                <small class="text-muted">at the end of 30 days</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="summary-card average-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="summary-icon me-3">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <h6 class="summary-label">Daily Average</h6>
+                                <h2 class="summary-value mb-0">
+                                    {% if forecast_data|length > 0 %}
+                                        {% widthratio total_forecasted_expenses|cut:','|floatformat:0 forecast_data|length 1 %}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </h2>
+                                <small class="text-muted">per day (estimated)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Table Card -->
+        <div class="forecast-card mb-4">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-table me-2"></i>
+                    <h5 class="mb-0">&nbsp; Daily Forecast Breakdown</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table forecast-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Forecasted Expenses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in forecast_data %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-calendar-date me-2 text-primary"></i>
+                                        {{ row.Date }}
+                                    </div>
+                                </td>
+                                <td class="forecast-amount">{{ row.Forecasted_Expenses }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Forecasts Card -->
+        <div class="forecast-card mb-4">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-pie-chart me-2"></i>
+                    <h5 class="mb-0">Category-wise Forecast</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Based on category spending ratios from historical data applied to total forecasted expenses
+                </p>
+                <div class="table-responsive">
+                    <table class="table category-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Total Forecasted Expenses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category, expenses in category_forecasts.items %}
+                            <tr>
+                                <td>
+                                    <span class="category-pill" style="background-color: 
+                                        {% if category == 'Food & Dining' %}#FF6B6B
+                                        {% elif category == 'Transportation' %}#4ECDC4
+                                        {% elif category == 'Shopping' %}#FFD93D
+                                        {% elif category == 'Entertainment' %}#9B59B6
+                                        {% elif category == 'Bills & Utilities' %}#3498DB
+                                        {% elif category == 'Healthcare' %}#E67E22
+                                        {% elif category == 'Education' %}#2ECC71
+                                        {% elif category == 'Travel' %}#1ABC9C
+                                        {% elif category == 'Housing' %}#E74C3C
+                                        {% elif category == 'Groceries' %}#F39C12
+                                        {% else %}#95A5A6
+                                        {% endif %};">
+                                        {{ category }}
+                                    </span>
+                                </td>
+                                <td class="category-amount">{{ expenses }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Plot Card -->
+        <div class="forecast-card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-graph-up me-2"></i>
+                    <h5 class="mb-0">Forecast Visualization</h5>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                <div class="plot-container">
+                    <img src="{% static 'img/forecast_plot.png' %}" alt="Expense Forecast Plot" class="img-fluid forecast-plot">
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    /* Page Title Styles */
+    .page-title {
+        font-weight: 700;
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, #4361ee, #7b2cbf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0;
+    }
+
+    .forecast-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #4361ee, #7b2cbf);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .forecast-icon i {
+        font-size: 30px;
+        color: white;
+    }
+
+    /* Summary Cards */
+    .summary-card {
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+
+    .total-card {
+        background: linear-gradient(145deg, #f0f4ff, #e6ecfe);
+        border-left: 5px solid #4361ee;
+    }
+
+    .average-card {
+        background: linear-gradient(145deg, #f0fdf4, #e6f9ec);
+        border-left: 5px solid #10b981;
+    }
+
+    .summary-icon {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .total-card .summary-icon i {
+        font-size: 24px;
+        color: #4361ee;
+    }
+
+    .average-card .summary-icon i {
+        font-size: 24px;
+        color: #10b981;
+    }
+
+    .summary-label {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .summary-value {
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #2d3748;
+    }
+
+    /* Forecast Cards */
+    .forecast-card {
+        border: none !important;
+        border-radius: 20px !important;
+        background: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .forecast-card:hover {
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+
+    .forecast-card .card-header {
+        background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+    }
+
+    .forecast-card .card-header h5 {
+        color: #2d3748;
+        font-weight: 600;
+    }
+
+    .forecast-card .card-header i {
+        color: #4361ee;
+        font-size: 1.2rem;
+    }
+
+    .forecast-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Table Styles */
+    .forecast-table,
+    .category-table {
+        margin-bottom: 0;
+    }
+
+    .forecast-table thead th,
+    .category-table thead th {
+        background: #4361ee;
+        color: white;
+        font-weight: 600;
+        padding: 15px;
+        border: none;
+        font-size: 1rem;
+    }
+
+    .forecast-table thead th:first-child {
+        border-radius: 15px 0 0 0;
+    }
+
+    .forecast-table thead th:last-child {
+        border-radius: 0 15px 0 0;
+    }
+
+    .forecast-table tbody tr,
+    .category-table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .forecast-table tbody tr:hover,
+    .category-table tbody tr:hover {
+        background: #f8f9ff;
+        transform: scale(1.01);
+    }
+
+    .forecast-table tbody td,
+    .category-table tbody td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .forecast-amount,
+    .category-amount {
+        font-weight: 600;
+        color: #06d6a0;
+    }
+
+    /* Category Pills */
+    .category-pill {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: white !important;
+        min-width: 120px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .category-pill:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        filter: brightness(110%);
+    }
+
+    /* Plot Container */
+    .plot-container {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .forecast-plot {
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    .forecast-plot:hover {
+        transform: scale(1.02);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    /* Dark Mode Styles */
+    body.dark .summary-card {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+
+    body.dark .total-card {
+        background: #1e293b;
+    }
+
+    body.dark .average-card {
+        background: #1c2c2a;
+    }
+
+    body.dark .summary-label {
+        color: #a0a0a0;
+    }
+
+    body.dark .summary-value {
+        color: #f0f0f0;
+    }
+
+    body.dark .forecast-card {
+        background: #2d2d2d;
+    }
+
+    body.dark .forecast-card .card-header {
+        background: #1e1e1e;
+        border-bottom-color: #404040;
+    }
+
+    body.dark .forecast-card .card-header h5 {
+        color: #e0e0e0;
+    }
+
+    body.dark .forecast-card .card-body {
+        background: #2d2d2d;
+    }
+
+    body.dark .forecast-table tbody tr,
+    body.dark .category-table tbody tr {
+        background: #1e1e1e;
+        border-color: #404040;
+    }
+
+    body.dark .forecast-table tbody td,
+    body.dark .category-table tbody td {
+        color: #e0e0e0;
+        border-bottom-color: #404040;
+    }
+
+    body.dark .forecast-table tbody tr:hover,
+    body.dark .category-table tbody tr:hover {
+        background: #333333;
+    }
+
+    body.dark .plot-container {
+        background: #1e1e1e;
+        border-color: #404040;
+    }
+
+    body.dark .text-muted {
+        color: #a0a0a0 !important;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.8rem;
+        }
+
+        .forecast-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .forecast-icon i {
+            font-size: 24px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+        }
+
+        .category-pill {
+            min-width: 100px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+
+        .forecast-card .card-header {
+            padding: 0.8rem 1rem;
+        }
+
+        .forecast-card .card-body {
+            padding: 1rem;
+        }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .container {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .summary-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .forecast-card {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    /* Additional Styling */
+    .badge-forecast {
+        background: linear-gradient(135deg, #4361ee, #7b2cbf);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #4361ee, #7b2cbf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+    }
+</style>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<!-- Optional: Add tooltip for extra info -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add tooltips to show additional info
+        const forecastRows = document.querySelectorAll('.forecast-table tbody tr');
+        forecastRows.forEach(row => {
+            const amount = row.querySelector('.forecast-amount').textContent;
+            row.setAttribute('title', `Forecasted expense: ${amount}`);
+        });
+    });
+</script>
+{% endblock content %}

@@ -1,0 +1,1078 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4" id="financial-intelligence-app">
+
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-brain me-2 text-purple"></i>Financial Intelligence
+            </h2>
+            <p class="text-muted mb-0">AI-powered insights and predictive analytics</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="input-group input-group-sm" style="width: 180px;">
+                <select class="form-select" id="period-select" onchange="changePeriod(this.value)">
+                    <option value="week" {% if current_period == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if current_period == 'month' or not current_period %}selected{% endif %}>This Month</option>
+                    <option value="quarter" {% if current_period == 'quarter' %}selected{% endif %}>This Quarter</option>
+                    <option value="year" {% if current_period == 'year' %}selected{% endif %}>This Year</option>
+                </select>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                <i class="fas fa-sync-alt" id="refresh-icon"></i> <span id="refresh-text">Refresh</span>
+            </button>
+            <div class="form-check form-switch ms-2">
+                <input class="form-check-input" type="checkbox" id="auto-refresh" onchange="toggleAutoRefresh()">
+                <label class="form-check-label small text-muted" for="auto-refresh">Live</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none" style="z-index: 9999;">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="mb-0 text-muted">Loading data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Range Display -->
+    <div class="mb-3">
+        <span class="badge bg-light text-dark border">
+            <i class="fas fa-calendar-week me-1"></i> <span id="date-range-text">{{ date_range_text|default:"This Month" }}</span>
+        </span>
+        <span class="badge bg-info text-white ms-1">
+            <i class="fas fa-circle me-1" id="live-indicator" style="display: none;"></i> Live
+        </span>
+    </div>
+
+    <!-- ================= FINANCIAL HEALTH SCORE ================= -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card health-score-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="health-score-circle mx-auto" id="health-score-circle" data-score="{{ financial_health.score|default:0 }}">
+                                <span class="score-value" id="health-score-value">{{ financial_health.score|default:0 }}</span>
+                            </div>
+                            <h6 class="mt-2 mb-0 fw-bold">Financial Health Score</h6>
+                            <small class="text-muted" id="health-explanation">{{ financial_health.explanation|default:"No data available" }}</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row g-3">
+                                <div class="col-6 col-lg-3">
+                                    <div class="score-breakdown p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="fas fa-wallet me-1 text-primary"></i>Spending vs Income</span>
+                                            <span class="fw-bold" id="income-score">{{ financial_health.income_score|default:0 }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-primary" id="income-score-bar" style="width: {{ financial_health.income_score|default:0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="score-breakdown p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="fas fa-chart-pie me-1 text-success"></i>Budget Adherence</span>
+                                            <span class="fw-bold" id="budget-score">{{ financial_health.budget_score|default:0 }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" id="budget-score-bar" style="width: {{ financial_health.budget_score|default:0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="score-breakdown p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="fas fa-piggy-bank me-1 text-warning"></i>Savings Consistency</span>
+                                            <span class="fw-bold" id="savings-score">{{ financial_health.savings_score|default:0 }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" id="savings-score-bar" style="width: {{ financial_health.savings_score|default:0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-lg-3">
+                                    <div class="score-breakdown p-3 bg-light rounded">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="fas fa-shield-alt me-1 text-info"></i>Spending Stability</span>
+                                            <span class="fw-bold" id="volatility-score">{{ financial_health.volatility_score|default:0 }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-info" id="volatility-score-bar" style="width: {{ financial_health.volatility_score|default:0 }}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TOP KPI CARDS ================= -->
+    <div class="row g-4 mb-4">
+        <!-- Total Income -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100 card-animate">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1"><i class="fas fa-arrow-down me-1 text-success"></i>Total Income</p>
+                            <h4 class="fw-bold mb-0" id="total-income">{{ currency_symbol }}{{ spending_vs_income.income.current|default:0|intcomma }}</h4>
+                            <small id="income-change">
+                                <span class="{% if spending_vs_income.income.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="fas {% if spending_vs_income.income.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                    {{ spending_vs_income.income.change|default:0 }}% vs last month
+                                </span>
+                            </small>
+                        </div>
+                        <div class="kpi-icon bg-success-light">
+                            <i class="fas fa-wallet text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100 card-animate">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1"><i class="fas fa-arrow-up me-1 text-danger"></i>Total Expenses</p>
+                            <h4 class="fw-bold mb-0" id="total-expenses">{{ currency_symbol }}{{ spending_vs_income.expenses.current|default:0|intcomma }}</h4>
+                            <small id="expense-change">
+                                <span class="{% if spending_vs_income.expenses.change > 0 %}text-danger{% else %}text-success{% endif %}">
+                                    <i class="fas {% if spending_vs_income.expenses.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                    {{ spending_vs_income.expenses.change|default:0 }}% vs last month
+                                </span>
+                            </small>
+                        </div>
+                        <div class="kpi-icon bg-danger-light">
+                            <i class="fas fa-credit-card text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Savings -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100 card-animate">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1"><i class="fas fa-piggy-bank me-1"></i>Net Savings</p>
+                            <h4 class="fw-bold mb-0 {% if spending_vs_income.savings.current > 0 %}text-success{% else %}text-danger{% endif %}" id="net-savings">
+                                {{ currency_symbol }}{{ spending_vs_income.savings.current|default:0|intcomma }}
+                            </h4>
+                            <small id="savings-change">
+                                <span class="{% if spending_vs_income.savings.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    <i class="fas {% if spending_vs_income.savings.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                    {{ spending_vs_income.savings.change|default:0 }}% vs last month
+                                </span>
+                            </small>
+                        </div>
+                        <div class="kpi-icon bg-success-light" id="savings-icon">
+                            <i class="fas fa-piggy-bank text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Remaining -->
+        <div class="col-xl-3 col-md-6" id="budget-card" {% if not budget_utilization.has_limit %}style="display: none;"{% endif %}>
+            <div class="card kpi-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1"><i class="fas fa-wallet me-1"></i>Budget Remaining</p>
+                            <h4 class="fw-bold mb-0" id="budget-remaining">{{ currency_symbol }}{{ budget_utilization.remaining|default:0|intcomma }}</h4>
+                            <small class="text-muted" id="budget-days-left">
+                                {{ budget_utilization.days_remaining|default:0 }} days left
+                            </small>
+                        </div>
+                        <div class="kpi-icon" id="budget-icon" style="background: {{ budget_utilization.color|default:'#1cc88a' }}20;">
+                            <i class="fas fa-chart-line" style="color: {{ budget_utilization.color|default:'#1cc88a' }};" id="budget-icon-inner"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= BUDGET UTILIZATION BAR ================= -->
+    <div class="row g-4 mb-4" id="budget-utilization-row" {% if not budget_utilization.has_limit %}style="display: none;"{% endif %}>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2"></i>Budget Utilization</h6>
+                        <span class="badge" id="budget-percentage-badge" style="background: {{ budget_utilization.color|default:'#1cc88a' }}; color: white;">
+                            {{ budget_utilization.percentage|default:0 }}% Used
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 16px; border-radius: 8px;">
+                        <div class="progress-bar" id="budget-progress-bar" 
+                             style="width: {{ budget_utilization.percentage|default:0 }}%; background: {{ budget_utilization.color|default:'#1cc88a' }}; border-radius: 8px;"
+                             role="progressbar">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted"><i class="fas fa-minus-circle me-1"></i>Spent: <span id="budget-spent">{{ currency_symbol }}{{ budget_utilization.spent|default:0|intcomma }}</span></small>
+                        <small class="text-muted"><i class="fas fa-slash me-1"></i>Budget: <span id="budget-limit">{{ currency_symbol }}{{ budget_utilization.limit|default:0|intcomma }}</span></small>
+                        <small class="text-muted"><i class="fas fa-plus-circle me-1"></i>Remaining: <span id="budget-remaining-text">{{ currency_symbol }}{{ budget_utilization.remaining|default:0|intcomma }}</span></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CHARTS ROW ================= -->
+    <div class="row g-4 mb-4">
+        <!-- Spending Trend Chart -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-chart-line me-2"></i>Spending Trend</h6>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary active" onclick="updateTrendChart('7', this)">7 Days</button>
+                            <button class="btn btn-outline-secondary" onclick="updateTrendChart('30', this)">30 Days</button>
+                        </div>
+                    </div>
+                    <canvas id="trendChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Breakdown Pie Chart -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-chart-pie me-2"></i>Category Breakdown</h6>
+                    <div id="category-chart-container">
+                        <div class="chart-container" style="position: relative; height: 200px;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div class="mt-3" id="category-legend">
+                            {% for cat in category_breakdown.categories|default:empty %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="category-dot" style="background: {{ cat.color }};"></span>
+                                    <small>{{ cat.name }}</small>
+                                </div>
+                                <small class="fw-bold">{{ cat.percentage }}%</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div id="no-category-data" class="text-center py-5 text-muted" {% if category_breakdown.has_data %}style="display: none;"{% endif %}>
+                        <i class="fas fa-chart-pie fa-3x mb-3 opacity-50"></i>
+                        <p>No expense data yet</p>
+                        <small>Add some expenses to see your category breakdown</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= AI INSIGHTS PANEL ================= -->
+    <div class="row g-4 mb-4" id="ai-insights-row" {% if not ai_insights.insights %}style="display: none;"{% endif %}>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-robot text-white me-2 fa-lg"></i>
+                        <h5 class="fw-bold text-white mb-0">AI Financial Insights</h5>
+                    </div>
+                    <div class="row g-3" id="ai-insights-container">
+                        {% for insight in ai_insights.insights|default:empty %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="insight-card bg-white bg-opacity-10 rounded p-3 h-100">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas {{ insight.icon|default:'fa-info-circle' }} me-2 mt-1 fa-lg 
+                                        {% if insight.type == 'success' %}text-success
+                                        {% elif insight.type == 'warning' %}text-warning
+                                        {% elif insight.type == 'danger' %}text-danger
+                                        {% else %}text-info{% endif %}"></i>
+                                    <small class="text-white"> <small class="insight-text"> {{ insight.message }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SAVINGS GOALS & ACTIVITY TIMELINE ================= -->
+    <div class="row g-4 mb-4">
+        <!-- Savings Goals -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-bullseye me-2"></i>Savings Goals</h6>
+                        <a href="{% url 'goals' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div id="savings-goals-container">
+                        {% if savings_goals.has_goals %}
+                            {% for goal in savings_goals.goals|default:empty %}
+                            <div class="goal-item mb-3 p-3 bg-light rounded">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-medium">{{ goal.name }}</span>
+                                    <small class="text-muted">{{ goal.progress }}%</small>
+                                </div>
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                    <div class="progress-bar bg-success" style="width: {{ goal.progress }}%; border-radius: 5px;"></div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-muted">{{ currency_symbol }}{{ goal.current|intcomma }} / {{ currency_symbol }}{{ goal.target|intcomma }}</small>
+                                    {% if goal.days_remaining %}
+                                    <small class="text-muted">{{ goal.days_remaining }} days left</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-4 text-muted" id="no-goals">
+                            <i class="fas fa-bullseye fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0 small">No active goals</p>
+                            <a href="{% url 'goals' %}" class="btn btn-sm btn-primary mt-2">Create Goal</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+                        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                    <div class="activity-timeline" id="activity-timeline-container">
+                        {% if activity_timeline.has_activities %}
+                            {% for activity in activity_timeline.activities|default:empty %}
+                            <div class="timeline-item d-flex align-items-start mb-3 pb-3 border-bottom">
+                                <div class="timeline-icon me-3 bg-primary-light rounded-circle p-2">
+                                    <i class="fas fa-receipt text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-medium">{{ activity.category }}</span>
+                                            <small class="text-muted d-block">{{ activity.description }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold text-danger">-{{ currency_symbol }}{{ activity.amount|intcomma }}</span>
+                                            <small class="text-muted d-block">{{ activity.time_label }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center py-4 text-muted" id="no-activity">
+                            <i class="fas fa-history fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0 small">No recent activity</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PREDICTION CARDS ================= -->
+    <div class="row g-4 mb-4" id="predictions-row" {% if not predictions.has_data and not predictions.is_estimate %}style="display: none;"{% endif %}>
+        <div class="col-12">
+            <h6 class="fw-bold mb-3">
+                <i class="fas fa-crystal-ball me-2"></i>Spending Predictions
+                {% if predictions.is_estimate %}
+                <small class="text-muted fw-normal">(Based on typical spending patterns)</small>
+                {% endif %}
+            </h6>
+        </div>
+        <!-- Today -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">
+                            <i class="fas fa-sun text-warning fa-lg"></i>
+                        </div>
+                        <h6 class="text-muted mb-0">Today</h6>
+                    </div>
+                    <h3 class="fw-bold mt-2" id="pred-today">{{ currency_symbol }}{{ predictions.today|default:0|intcomma }}</h3>
+                    <small class="text-success">
+                        <i class="fas fa-robot"></i> Predicted
+                    </small>
+                </div>
+            </div>
+        </div>
+        <!-- Tomorrow -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">
+                            <i class="fas fa-cloud-sun text-info fa-lg"></i>
+                        </div>
+                        <h6 class="text-muted mb-0">Tomorrow</h6>
+                    </div>
+                    <h3 class="fw-bold mt-2" id="pred-tomorrow">{{ currency_symbol }}{{ predictions.tomorrow|default:0|intcomma }}</h3>
+                    <small class="text-warning">
+                        <i class="fas fa-arrow-right"></i> Expected
+                    </small>
+                </div>
+            </div>
+        </div>
+        <!-- Week -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">
+                            <i class="fas fa-calendar-week text-primary fa-lg"></i>
+                        </div>
+                        <h6 class="text-muted mb-0">This Week</h6>
+                    </div>
+                    <h3 class="fw-bold mt-2" id="pred-week">{{ currency_symbol }}{{ predictions.this_week|default:0|intcomma }}</h3>
+                    <small class="text-info">
+                        <i class="fas fa-chart-line"></i> Rolling average
+                    </small>
+                </div>
+            </div>
+        </div>
+        <!-- Month -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card dashboard-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="me-2">
+                            <i class="fas fa-calendar-alt text-danger fa-lg"></i>
+                        </div>
+                        <h6 class="text-muted mb-0">This Month</h6>
+                    </div>
+                    <h3 class="fw-bold mt-2" id="pred-month">{{ currency_symbol }}{{ predictions.this_month|default:0|intcomma }}</h3>
+                    <small class="text-danger">
+                        <i class="fas fa-exclamation-circle"></i> Projected
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+.text-purple { color: #6f42c1 !important; }
+.bg-primary-light { background-color: rgba(78, 115, 223, 0.1) !important; }
+.health-score-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+    background: conic-gradient(#4e73df var(--score, 0%), #e9ecef 0);
+    transition: background 1s ease-out;
+}
+.health-score-circle::before {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 50%;
+}
+.health-score-circle .score-value {
+    position: relative;
+    z-index: 1;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #5a5c69;
+}
+.category-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+.kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.bg-success-light { background-color: rgba(28, 200, 138, 0.15) !important; }
+.bg-danger-light { background-color: rgba(231, 74, 59, 0.15) !important; }
+.card-animate { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card-animate:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important; }
+.timeline-icon { min-width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+.insight-card { transition: transform 0.2s ease; }
+.insight-card:hover { transform: translateY(-2px); background-color: rgba(255, 255, 255, 0.15) !important; }
+.dashboard-card { transition: transform 0.2s ease; }
+.dashboard-card:hover { transform: translateY(-2px); }
+</style>
+
+<script>
+// Configuration
+const CURRENCY_SYMBOL = '{{ currency_symbol }}';
+let currentPeriod = '{{ current_period|default:"month" }}';
+let autoRefreshInterval = null;
+let trendChartInstance = null;
+let categoryChartInstance = null;
+
+// Chart colors
+const chartColors = {
+    primary: '#4e73df',
+    success: '#1cc88a',
+    warning: '#f6c23e',
+    danger: '#e74a3b',
+    info: '#36b9cc',
+    purple: '#6f42c1',
+    dark: '#5a5c69'
+};
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initTrendChart();
+    initCategoryChart();
+    animateHealthScore();
+    
+    // Set up auto-refresh if enabled
+    if (document.getElementById('auto-refresh').checked) {
+        startAutoRefresh();
+    }
+});
+
+// Change period without reload
+function changePeriod(period) {
+    currentPeriod = period;
+    showLoading();
+    fetchData(period);
+}
+
+// Fetch data from API
+async function fetchData(period) {
+    try {
+        const response = await fetch(`/expenses/financial-intelligence/api/?period=${period}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateUI(data);
+        } else {
+            console.error('Error fetching data:', data);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Update UI with fresh data
+function updateUI(data) {
+    // Update currency symbol
+    const currency = data.currency_symbol || CURRENCY_SYMBOL;
+    
+    // Update date range text
+    const periodLabels = {
+        'week': 'This Week',
+        'month': data.date_range_text || 'This Month',
+        'quarter': 'This Quarter',
+        'year': 'This Year'
+    };
+    document.getElementById('date-range-text').textContent = periodLabels[currentPeriod] || 'This Month';
+    
+    // Update financial health
+    if (data.financial_health) {
+        updateHealthScore(data.financial_health);
+    }
+    
+    // Update KPI cards
+    if (data.spending_vs_income) {
+        updateKPICards(data.spending_vs_income, currency);
+    }
+    
+    // Update budget
+    if (data.budget_utilization) {
+        updateBudget(data.budget_utilization, currency);
+    }
+    
+    // Update charts
+    if (data.trend_data) {
+        updateTrendChartData(data.trend_data);
+    }
+    if (data.category_breakdown) {
+        updateCategoryChart(data.category_breakdown);
+    }
+    
+    // Update AI insights
+    if (data.ai_insights && data.ai_insights.insights) {
+        updateAIInsights(data.ai_insights.insights);
+    }
+    
+    // Update savings goals
+    if (data.savings_goals) {
+        updateSavingsGoals(data.savings_goals, currency);
+    }
+    
+    // Update activity timeline
+    if (data.activity_timeline) {
+        updateActivityTimeline(data.activity_timeline, currency);
+    }
+    
+    // Update predictions
+    if (data.predictions) {
+        updatePredictions(data.predictions, currency);
+    }
+}
+
+// Update health score display
+function updateHealthScore(health) {
+    const score = health.score || 0;
+    document.getElementById('health-score-value').textContent = score;
+    document.getElementById('health-score-circle').dataset.score = score;
+    document.getElementById('health-explanation').textContent = health.explanation || 'No data available';
+    
+    document.getElementById('income-score').textContent = (health.income_score || 0) + '%';
+    document.getElementById('income-score-bar').style.width = (health.income_score || 0) + '%';
+    
+    document.getElementById('budget-score').textContent = (health.budget_score || 0) + '%';
+    document.getElementById('budget-score-bar').style.width = (health.budget_score || 0) + '%';
+    
+    document.getElementById('savings-score').textContent = (health.savings_score || 0) + '%';
+    document.getElementById('savings-score-bar').style.width = (health.savings_score || 0) + '%';
+    
+    document.getElementById('volatility-score').textContent = (health.volatility_score || 0) + '%';
+    document.getElementById('volatility-score-bar').style.width = (health.volatility_score || 0) + '%';
+    
+    // Re-animate
+    animateHealthScore();
+}
+
+// Update KPI cards
+function updateKPICards(data, currency) {
+    // Income
+    document.getElementById('total-income').textContent = currency + (data.income?.current || 0).toLocaleString();
+    document.getElementById('income-change').innerHTML = `
+        <span class="${data.income?.change > 0 ? 'text-success' : 'text-danger'}">
+            <i class="fas ${data.income?.change > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+            ${data.income?.change || 0}% vs last month
+        </span>
+    `;
+    
+    // Expenses
+    document.getElementById('total-expenses').textContent = currency + (data.expenses?.current || 0).toLocaleString();
+    document.getElementById('expense-change').innerHTML = `
+        <span class="${data.expenses?.change > 0 ? 'text-danger' : 'text-success'}">
+            <i class="fas ${data.expenses?.change > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+            ${data.expenses?.change || 0}% vs last month
+        </span>
+    `;
+    
+    // Savings
+    const savingsAmount = data.savings?.current || 0;
+    document.getElementById('net-savings').textContent = currency + savingsAmount.toLocaleString();
+    document.getElementById('net-savings').className = `fw-bold mb-0 ${savingsAmount > 0 ? 'text-success' : 'text-danger'}`;
+    document.getElementById('savings-change').innerHTML = `
+        <span class="${data.savings?.change > 0 ? 'text-success' : 'text-danger'}">
+            <i class="fas ${data.savings?.change > 0 ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+            ${data.savings?.change || 0}% vs last month
+        </span>
+    `;
+    
+    const savingsIcon = document.getElementById('savings-icon');
+    if (savingsAmount > 0) {
+        savingsIcon.className = 'kpi-icon bg-success-light';
+        savingsIcon.innerHTML = '<i class="fas fa-piggy-bank text-success"></i>';
+    } else {
+        savingsIcon.className = 'kpi-icon bg-danger-light';
+        savingsIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i>';
+    }
+}
+
+// Update budget display
+function updateBudget(data, currency) {
+    const hasLimit = data.has_limit;
+    const budgetCard = document.getElementById('budget-card');
+    const budgetRow = document.getElementById('budget-utilization-row');
+    
+    if (hasLimit) {
+        budgetCard.style.display = 'block';
+        budgetRow.style.display = 'block';
+        
+        document.getElementById('budget-remaining').textContent = currency + (data.remaining || 0).toLocaleString();
+        document.getElementById('budget-days-left').textContent = (data.days_remaining || 0) + ' days left';
+        
+        const color = data.color || '#1cc88a';
+        document.getElementById('budget-icon').style.background = color + '20';
+        document.getElementById('budget-icon-inner').style.color = color;
+        
+        document.getElementById('budget-percentage-badge').style.background = color;
+        document.getElementById('budget-percentage-badge').textContent = (data.percentage || 0) + '% Used';
+        
+        document.getElementById('budget-progress-bar').style.width = (data.percentage || 0) + '%';
+        document.getElementById('budget-progress-bar').style.background = color;
+        
+        document.getElementById('budget-spent').textContent = currency + (data.spent || 0).toLocaleString();
+        document.getElementById('budget-limit').textContent = currency + (data.limit || 0).toLocaleString();
+        document.getElementById('budget-remaining-text').textContent = currency + (data.remaining || 0).toLocaleString();
+    } else {
+        budgetCard.style.display = 'none';
+        budgetRow.style.display = 'none';
+    }
+}
+
+// Update AI insights
+function updateAIInsights(insights) {
+    const row = document.getElementById('ai-insights-row');
+    const container = document.getElementById('ai-insights-container');
+    
+    if (insights && insights.length > 0) {
+        row.style.display = 'block';
+        container.innerHTML = insights.map(insight => {
+            let iconClass = 'fa-info-circle';
+            let textClass = 'text-info';
+            if (insight.type === 'success') { iconClass = 'fa-check-circle'; textClass = 'text-success'; }
+            else if (insight.type === 'warning') { iconClass = 'fa-exclamation-triangle'; textClass = 'text-warning'; }
+            else if (insight.type === 'danger') { iconClass = 'fa-exclamation-circle'; textClass = 'text-danger'; }
+            
+            return `
+                <div class="col-md-6 col-lg-4">
+                    <div class="insight-card bg-white bg-opacity-10 rounded p-3 h-100">
+                        <div class="d-flex align-items-start">
+                            <i class="fas ${insight.icon || iconClass} me-2 mt-1 fa-lg ${insight.icon ? '' : textClass}"></i>
+                            <small class="text-white"> ${insight.message}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        row.style.display = 'none';
+    }
+}
+
+// Update savings goals
+function updateSavingsGoals(data, currency) {
+    const container = document.getElementById('savings-goals-container');
+    const noGoals = document.getElementById('no-goals');
+    
+    if (data.has_goals && data.goals && data.goals.length > 0) {
+        if (noGoals) noGoals.style.display = 'none';
+        container.innerHTML = data.goals.map(goal => `
+            <div class="goal-item mb-3 p-3 bg-light rounded">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">${goal.name}</span>
+                    <small class="text-muted">${goal.progress}%</small>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 5px;">
+                    <div class="progress-bar bg-success" style="width: ${goal.progress}%; border-radius: 5px;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                    <small class="text-muted">${currency}${goal.current.toLocaleString()} / ${currency}${goal.target.toLocaleString()}</small>
+                    ${goal.days_remaining ? `<small class="text-muted">${goal.days_remaining} days left</small>` : ''}
+                </div>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = `
+            <div class="text-center py-4 text-muted" id="no-goals">
+                <i class="fas fa-bullseye fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0 small">No active goals</p>
+                <a href="{% url 'goals' %}" class="btn btn-sm btn-primary mt-2">Create Goal</a>
+            </div>
+        `;
+    }
+}
+
+// Update activity timeline
+function updateActivityTimeline(data, currency) {
+    const container = document.getElementById('activity-timeline-container');
+    
+    if (data.activities && data.activities.length > 0) {
+        container.innerHTML = data.activities.map(activity => `
+            <div class="timeline-item d-flex align-items-start mb-3 pb-3 border-bottom">
+                <div class="timeline-icon me-3 bg-primary-light rounded-circle p-2">
+                    <i class="fas fa-receipt text-primary"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="fw-medium">${activity.category}</span>
+                            <small class="text-muted d-block">${activity.description || ''}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-danger">-${currency}${activity.amount.toLocaleString()}</span>
+                            <small class="text-muted d-block">${activity.time_label}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        container.innerHTML = `
+            <div class="text-center py-4 text-muted" id="no-activity">
+                <i class="fas fa-history fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0 small">No recent activity</p>
+            </div>
+        `;
+    }
+}
+
+// Update predictions
+function updatePredictions(data, currency) {
+    const row = document.getElementById('predictions-row');
+    
+    if (data.has_data || data.is_estimate) {
+        row.style.display = 'block';
+        document.getElementById('pred-today').textContent = currency + (data.today || 0).toLocaleString();
+        document.getElementById('pred-tomorrow').textContent = currency + (data.tomorrow || 0).toLocaleString();
+        document.getElementById('pred-week').textContent = currency + (data.this_week || 0).toLocaleString();
+        document.getElementById('pred-month').textContent = currency + (data.this_month || 0).toLocaleString();
+    } else {
+        row.style.display = 'none';
+    }
+}
+
+// Initialize trend chart
+function initTrendChart() {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    
+    let trendData = {{ trend_data_json|safe }};
+    if (!trendData || typeof trendData === 'string') {
+        try { trendData = JSON.parse('{{ trend_data_json|escapejs }}'); }
+        catch (e) { trendData = { daily: [], moving_avg_7: [] }; }
+    }
+    
+    trendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: trendData.daily ? trendData.daily.map(d => d.label) : [],
+            datasets: [
+                {
+                    label: 'Daily Spending',
+                    data: trendData.daily ? trendData.daily.map(d => d.amount) : [],
+                    borderColor: chartColors.primary,
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: chartColors.primary
+                },
+                {
+                    label: '7-Day Average',
+                    data: trendData.moving_avg_7 ? trendData.moving_avg_7.map(d => d.value) : [],
+                    borderColor: chartColors.success,
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    fill: false,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { usePointStyle: true, padding: 20 } },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${CURRENCY_SYMBOL}${(context.raw || 0).toLocaleString()}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: function(value) { return CURRENCY_SYMBOL + value.toLocaleString(); } },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+// Update trend chart data
+function updateTrendChartData(data) {
+    if (!trendChartInstance) return;
+    
+    trendChartInstance.data.labels = data.daily ? data.daily.map(d => d.label) : [];
+    trendChartInstance.data.datasets[0].data = data.daily ? data.daily.map(d => d.amount) : [];
+    trendChartInstance.data.datasets[1].data = data.moving_avg_7 ? data.moving_avg_7.map(d => d.value) : [];
+    trendChartInstance.update();
+}
+
+// Initialize category chart
+function initCategoryChart() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
+    
+    let categoryData = {{ category_breakdown|safe }};
+    
+    if (!categoryData || !categoryData.has_data) {
+        document.getElementById('category-chart-container').style.display = 'none';
+        document.getElementById('no-category-data').style.display = 'block';
+        return;
+    }
+    
+    document.getElementById('category-chart-container').style.display = 'block';
+    document.getElementById('no-category-data').style.display = 'none';
+    
+    categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: categoryData.categories ? categoryData.categories.map(c => c.name) : [],
+            datasets: [{
+                data: categoryData.categories ? categoryData.categories.map(c => c.amount) : [],
+                backgroundColor: categoryData.categories ? categoryData.categories.map(c => c.color || chartColors.primary) : [],
+                borderWidth: 0,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Update category chart
+function updateCategoryChart(data) {
+    const container = document.getElementById('category-chart-container');
+    const noData = document.getElementById('no-category-data');
+    
+    if (data.has_data && data.categories) {
+        container.style.display = 'block';
+        noData.style.display = 'none';
+        
+        if (categoryChartInstance) {
+            categoryChartInstance.data.labels = data.categories.map(c => c.name);
+            categoryChartInstance.data.datasets[0].data = data.categories.map(c => c.amount);
+            categoryChartInstance.data.datasets[0].backgroundColor = data.categories.map(c => c.color || chartColors.primary);
+            categoryChartInstance.update();
+        }
+        
+        // Update legend
+        const legend = document.getElementById('category-legend');
+        legend.innerHTML = data.categories.map(cat => `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center">
+                    <span class="category-dot" style="background: ${cat.color};"></span>
+                    <small>${cat.name}</small>
+                </div>
+                <small class="fw-bold">${cat.percentage}%</small>
+            </div>
+        `).join('');
+    } else {
+        container.style.display = 'none';
+        noData.style.display = 'block';
+    }
+}
+
+// Animate health score circle
+function animateHealthScore() {
+    const circle = document.getElementById('health-score-circle');
+    if (!circle) return;
+    
+    const score = parseInt(circle.dataset.score) || 0;
+    let color;
+    if (score >= 80) color = '#1cc88a';
+    else if (score >= 60) color = '#f6c23e';
+    else color = '#e74a3b';
+    
+    circle.style.background = `conic-gradient(${color} ${score}%, #e9ecef ${score}%)`;
+}
+
+// Refresh data
+function refreshData() {
+    const btn = document.getElementById('refresh-icon');
+    btn.classList.add('fa-spin');
+    document.getElementById('refresh-text').textContent = 'Refreshing...';
+    
+    fetchData(currentPeriod).finally(() => {
+        setTimeout(() => {
+            btn.classList.remove('fa-spin');
+            document.getElementById('refresh-text').textContent = 'Refresh';
+        }, 500);
+    });
+}
+
+// Toggle auto-refresh
+function toggleAutoRefresh() {
+    const checkbox = document.getElementById('auto-refresh');
+    const indicator = document.getElementById('live-indicator');
+    
+    if (checkbox.checked) {
+        startAutoRefresh();
+        indicator.style.display = 'inline';
+    } else {
+        stopAutoRefresh();
+        indicator.style.display = 'none';
+    }
+}
+
+// Start auto-refresh (every 30 seconds)
+function startAutoRefresh() {
+    stopAutoRefresh();
+    autoRefreshInterval = setInterval(() => {
+        fetchData(currentPeriod);
+    }, 30000); // 30 seconds
+}
+
+// Stop auto-refresh
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+// Show/hide loading
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('d-none');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('d-none');
+}
+
+// Update trend chart period (placeholder)
+function updateTrendChart(days, btn) {
+    if (btn) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    console.log(`Chart showing ${days} days`);
+}
+</script>
+{% endblock %}
+

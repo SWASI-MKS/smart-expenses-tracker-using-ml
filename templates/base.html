@@ -1,0 +1,775 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+    <title>ExpenseWise</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <!-- CSS -->
+     <link rel="stylesheet" href="{% static 'css/overview.css' %}">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+    <!-- UI Effects - Professional Fintech Animations -->
+    <link href="{% static 'css/ui-effects.css' %}" rel="stylesheet">
+    
+    <!-- Dark Mode Text Visibility Fixes -->
+    <link rel="stylesheet" href="{% static 'css/dark-mode-fixes.css' %}">
+
+    {% block css %}{% endblock %}
+
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ================= LAYOUT ================= */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .content {
+            width: 100%;
+            background-color: #f8fafc;
+            transition: all 0.3s ease;
+            padding-top: 60px;
+            min-height: 100vh;
+            margin-left: 260px;
+        }
+
+        /* ================= TOP NAVBAR ================= */
+        .top-navbar {
+            height: 60px;
+            background: #020617;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #1e293b;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .top-navbar .left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger-btn {
+            display: block;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .hamburger-btn .hamburger-icon {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: #ffffff;
+            margin: 5px 0;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn.active .hamburger-icon:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 6px);
+        }
+
+        .hamburger-btn.active .hamburger-icon:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-btn.active .hamburger-icon:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -6px);
+        }
+
+        /* Show hamburger on mobile */
+        @media (max-width: 768px) {
+            .hamburger-btn {
+                display: block;
+            }
+            
+            .content {
+                margin-left: 0 !important;
+            }
+            
+            #sidebar {
+                margin-left: -260px;
+            }
+            
+            #sidebar.active {
+                margin-left: 0;
+            }
+        }
+
+        .top-navbar .right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dark-toggle {
+            border: 1px solid #334155;
+            background: transparent;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* ================= ICON SPACING FIX ================= */
+        .fa, .fa-solid, .fa-regular, .fas, .fab, .far, .bi {
+            margin-right: 0.5rem !important;
+            vertical-align: middle;
+        }
+
+        /* ================= VOICE MODAL ================= */
+
+        .voice-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .voice-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .voice-modal-card {
+            background: #ffffff;
+            width: 420px;
+            padding: 35px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        /* ================= DARK MODE ================= */
+        body.dark {
+            background-color: #020617;
+            color: #e5e7eb;
+        }
+
+        body.dark .content {
+            background-color: #020617;
+        }
+
+        body.dark .top-navbar {
+            background-color: #020617;
+            border-bottom: 1px solid #334155;
+        }
+
+        /* Dark mode table text fix */
+        body.dark .table,
+        body.dark .table th,
+        body.dark .table td,
+        body.dark .table thead th {
+            color: #ffffff !important;
+        }
+
+        body.dark .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Dark mode AI Financial Insights fix */
+        body.dark .insight-card {
+            color: #ffffff !important;
+        }
+
+        body.dark .insight-card small,
+        body.dark .insight-card span,
+        body.dark .insight-card p,
+        body.dark .insight-card div {
+            color: #ffffff !important;
+        }
+
+        /* Fix text-black which becomes invisible on dark gradient */
+        body.dark .insight-card .text-black {
+            color: #ffffff !important;
+        }
+        
+        /* Keep icon colors bright in dark mode */
+        body.dark .insight-card i.text-success,
+        body.dark .insight-card .fa-check-circle.text-success,
+        body.dark .insight-card .fa-info-circle.text-success {
+            color: #4ade80 !important;
+        }
+        body.dark .insight-card i.text-warning,
+        body.dark .insight-card .fa-exclamation-triangle.text-warning {
+            color: #facc15 !important;
+        }
+        body.dark .insight-card i.text-danger,
+        body.dark .insight-card .fa-exclamation-circle.text-danger {
+            color: #f87171 !important;
+        }
+        body.dark .insight-card i.text-info {
+            color: #22d3ee !important;
+        }
+
+        /* ================= DEBT MODULE DARK MODE STYLES ================= */
+        
+        /* Page Headers and Text */
+        body.dark h1,
+        body.dark h2,
+        body.dark h3,
+        body.dark h4,
+        body.dark h5,
+        body.dark h6 {
+            color: #f1f5f9 !important;
+        }
+
+        body.dark .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        body.dark p.text-muted {
+            color: #94a3b8 !important;
+        }
+
+        /* Cards */
+        body.dark .card {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+            color: #e5e7eb;
+        }
+
+        body.dark .card-header {
+            background-color: #0f172a !important;
+            border-bottom-color: #1e293b !important;
+            color: #e5e7eb;
+        }
+
+        body.dark .card-body {
+            color: #e5e7eb;
+        }
+
+        body.dark .card-footer {
+            background-color: #0f172a;
+            border-top-color: #1e293b;
+        }
+
+        /* Form Labels */
+        body.dark label {
+            color: #e5e7eb !important;
+        }
+
+        body.dark .form-label {
+            color: #e5e7eb !important;
+        }
+
+        /* Form Inputs */
+        body.dark input[type="text"],
+        body.dark input[type="number"],
+        body.dark input[type="email"],
+        body.dark input[type="password"],
+        body.dark input[type="date"],
+        body.dark input[type="datetime-local"],
+        body.dark input[type="search"],
+        body.dark select,
+        body.dark textarea {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+            border: 1px solid #334155 !important;
+        }
+
+        body.dark input::placeholder,
+        body.dark textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        body.dark input:focus,
+        body.dark select:focus,
+        body.dark textarea:focus {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25) !important;
+        }
+
+        /* Form Check */
+        body.dark .form-check-label {
+            color: #e5e7eb !important;
+        }
+
+        body.dark .form-check-input {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark .form-check-input:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Tables */
+        body.dark .table {
+            color: #e5e7eb !important;
+        }
+
+        body.dark .table thead th {
+            color: #e5e7eb !important;
+            border-bottom-color: #334155 !important;
+            background-color: #0f172a;
+        }
+
+        body.dark .table tbody td {
+            border-bottom-color: #1e293b !important;
+        }
+
+        body.dark .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+            body.dark .table .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        /* Progress Bar */
+        body.dark .progress {
+            background-color: #1e293b !important;
+        }
+
+        /* Badges */
+        body.dark .badge {
+            color: #ffffff !important;
+        }
+
+        /* Buttons */
+        body.dark .btn-primary {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        body.dark .btn-primary:hover {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #475569;
+            border-color: #475569;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #334155;
+            border-color: #334155;
+        }
+
+        body.dark .btn-success {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+
+        body.dark .btn-success:hover {
+            background-color: #059669;
+            border-color: #059669;
+        }
+
+        body.dark .btn-danger {
+            background-color: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* Button text color in dark mode */
+        body.dark .btn {
+            color: #ffffff !important;
+        }
+
+        body.dark .btn-outline-primary {
+            color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+
+        body.dark .btn-outline-primary:hover {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark .btn-outline-secondary {
+            color: #64748b !important;
+            border-color: #64748b !important;
+        }
+
+        body.dark .btn-outline-secondary:hover {
+            background-color: #475569 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark .btn-outline-success {
+            color: #10b981 !important;
+            border-color: #10b981 !important;
+        }
+
+        body.dark .btn-outline-success:hover {
+            background-color: #10b981 !important;
+            color: #ffffff !important;
+        }
+
+        /* Stats Icons Background */
+        body.dark .bg-danger-light {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+
+        body.dark .bg-warning-light {
+            background-color: rgba(245, 158, 11, 0.2) !important;
+        }
+
+        body.dark .bg-info-light {
+            background-color: rgba(59, 130, 246, 0.2) !important;
+        }
+
+        body.dark .bg-success-light {
+            background-color: rgba(16, 185, 129, 0.2) !important;
+        }
+
+        /* Page Header */
+        body.dark .page-header {
+            color: #f1f5f9;
+        }
+
+        /* Container-fluid */
+        body.dark .container-fluid {
+            color: #e5e7eb;
+        }
+
+        /* HR */
+        body.dark hr {
+            border-color: #334155 !important;
+        }
+
+        /* Modal (if used in debt pages) */
+        body.dark .modal-content {
+            background-color: #0f172a;
+            border-color: #1e293b;
+            color: #e5e7eb;
+        }
+
+        body.dark .modal-header {
+            border-bottom-color: #1e293b;
+        }
+
+        body.dark .modal-footer {
+            border-top-color: #1e293b;
+        }
+
+        /* Alert */
+        body.dark .alert-info {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        body.dark .alert-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #6ee7b7;
+        }
+
+        body.dark .alert-warning {
+            background-color: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+            color: #fcd34d;
+        }
+
+        body.dark .alert-danger {
+            background-color: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        /* Table Responsive */
+        body.dark .table-responsive {
+            border-color: #1e293b;
+        }
+
+        /* Empty State */
+        body.dark .text-center.py-5,
+        body.dark .text-center.py-4 {
+            color: #94a3b8;
+        }
+
+        /* Small text */
+        body.dark small,
+        body.dark .small {
+            color: #94a3b8 !important;
+        }
+
+        /* Link colors */
+        body.dark a {
+            color: #60a5fa;
+        }
+
+        body.dark a:hover {
+            color: #93c5fd;
+        }
+
+        /* Form error text */
+        body.dark .text-danger {
+            color: #f87171 !important;
+        }
+
+        /* Checkbox/Radio custom styling fix */
+        body.dark input[type="checkbox"],
+        body.dark input[type="radio"] {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        /* Strong text */
+        body.dark strong,
+        body.dark .strong {
+            color: #f1f5f9;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <!-- SIDEBAR -->
+    {% include "sidebar.html" %}
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+        <!-- TOP NAVBAR -->
+        <div class="top-navbar">
+
+            <div class="left">
+                <!-- Hamburger Menu Button -->
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h5 class="brand-title">ExpenseWise</h5>
+            </div>
+
+            <div class="right">
+                
+
+                <button id="darkModeToggle" class="dark-toggle">
+                    <i class="fa fa-moon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+
+                <div class="user-info">
+                    {% if user.is_authenticated %}
+                        <i class="fa fa-user-circle"></i>
+                        <span>Welcome, {{ user.username }}</span>
+                    {% else %}
+                        {% if request.resolver_match.url_name == 'register' %}
+                            <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">
+                                <i class="fa fa-sign-in-alt"></i> Login
+                            </a>
+                        {% elif request.resolver_match.url_name == 'login' %}
+                            <a href="{% url 'register' %}" class="btn btn-outline-light btn-sm">
+                                <i class="fa fa-user-plus"></i> Register
+                            </a>
+                        {% else %}
+                            <a href="{% url 'register' %}" class="btn btn-outline-light btn-sm">
+                                <i class="fa fa-user-plus"></i> Register
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+
+    </div>
+</div>
+
+<!-- JS -->
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- UI Effects - Professional Fintech Animations -->
+<script src="{% static 'js/ui-effects.js' %}"></script>
+
+<script>
+    const darkToggle = document.getElementById("darkModeToggle");
+    const themeText = document.getElementById("themeText");
+
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+        themeText.innerText = "Light Mode";
+    }
+
+    darkToggle.onclick = function () {
+        document.body.classList.toggle("dark");
+
+        if (document.body.classList.contains("dark")) {
+            localStorage.setItem("theme", "dark");
+            themeText.innerText = "Light Mode";
+        } else {
+            localStorage.setItem("theme", "light");
+            themeText.innerText = "Dark Mode";
+        }
+    };
+
+    // ================= SIDEBAR TOGGLE FUNCTIONALITY =================
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.querySelector('.content');
+
+    // Check if current page is login or register
+    const isAuthPage = window.location.pathname.includes('/login') || 
+                       window.location.pathname.includes('/register') ||
+                       window.location.pathname === '/' ||
+                       window.location.pathname === '';
+
+    // Hide sidebar and hamburger on auth pages (login/register)
+    if (isAuthPage && sidebar) {
+        sidebar.style.display = 'none';
+    }
+    
+    if (isAuthPage && hamburgerBtn) {
+        hamburgerBtn.style.display = 'none';
+    }
+
+    // Adjust content for auth pages
+    if (isAuthPage && content) {
+        content.style.marginLeft = '0';
+    }
+
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+
+    if (hamburgerBtn && sidebar) {
+        hamburgerBtn.addEventListener('click', function() {
+            // Toggle hamburger icon animation
+            this.classList.toggle('active');
+            
+            // Toggle icon between bars and X
+            const icon = this.querySelector('i');
+            if (icon) {
+                if (this.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-xmark');
+                } else {
+                    icon.classList.remove('fa-xmark');
+                    icon.classList.add('fa-bars');
+                }
+            }
+            
+            if (isMobile()) {
+                // Mobile: use active class to slide in/out
+                sidebar.classList.toggle('active');
+            } else {
+                // Desktop: use collapsed class
+                sidebar.classList.toggle('collapsed');
+                
+                // Adjust content margin
+                if (content) {
+                    if (sidebar.classList.contains('collapsed')) {
+                        content.style.marginLeft = '0';
+                    } else {
+                        content.style.marginLeft = '260px';
+                    }
+                }
+            }
+            
+            // Save state to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed') || sidebar.classList.contains('active');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            if (isMobile()) {
+                sidebar.classList.add('active');
+            } else {
+                sidebar.classList.add('collapsed');
+            }
+            hamburgerBtn.classList.add('active');
+            // Update icon
+            const icon = hamburgerBtn.querySelector('i');
+            if (icon) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            }
+            if (content) {
+                content.style.marginLeft = '0';
+            }
+        }
+    }
+
+// Only initialize chart if canvas exists (check for overview page)
+const trendChartEl = document.getElementById('trendChart');
+if (trendChartEl) {
+    const ctx = trendChartEl.getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+            datasets: [{
+                label: 'Spending',
+                data: [120, 190, 300, 220, 170, 250, 200],
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78,115,223,0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false }},
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+</script>
+
+{% block js %}{% endblock %}
+
+</body>
+</html>

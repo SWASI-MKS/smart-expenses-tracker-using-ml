@@ -1,0 +1,53 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>❌ Payment Failed</h1>
+</div>
+
+<div class="section-card" style="text-align: center;">
+    <!-- Failed Animation -->
+    <div style="width: 80px; height: 80px; background: #fef2f2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px;">
+        ✕
+    </div>
+    
+    <h2 style="color: #dc2626; margin: 0 0 8px;">Payment Failed</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">Your transaction could not be completed</p>
+    
+    <div class="balance-amount" style="font-size: 42px; margin: 16px 0;">₹ {{ transfer.amount }}</div>
+    
+    <!-- Failure Details -->
+    <div style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: left; margin: 24px 0;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Transaction ID</span>
+            <span style="font-weight: 600;">{{ transfer.transaction_id }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">To</span>
+            <span style="font-weight: 600;">{{ transfer.beneficiary.name|default:transfer.receiver_name|default:"N/A" }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Date & Time</span>
+            <span style="font-weight: 600;">{{ transfer.created_at|date:"d M Y, H:i" }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--muted); font-size: 14px;">Status</span>
+            <span class="status-badge failed">{{ transfer.status }}</span>
+        </div>
+        {% if transfer.failure_reason %}
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; background: #fef2f2; margin: 8px -20px -20px; padding: 16px 20px; border-radius: 0 0 12px 12px;">
+            <span style="color: #dc2626; font-size: 14px; font-weight: 600;">Reason:</span>
+            <span style="color: #dc2626; font-weight: 600;">{{ transfer.failure_reason }}</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <a href="{% url 'bank-dashboard' %}">
+        <button class="btn btn-primary btn-block" style="padding: 16px;">Back to Dashboard</button>
+    </a>
+    <a href="{% url 'send-money' %}">
+        <button class="btn btn-secondary btn-block" style="margin-top: 8px;">Try Again</button>
+    </a>
+</div>
+{% endblock %}
+

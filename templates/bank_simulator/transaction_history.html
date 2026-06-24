@@ -1,0 +1,178 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>📋 Transaction History</h1>
+</div>
+
+<!-- Filter Tabs -->
+<div class="tabs">
+    <div class="tab active" data-filter="all">All Transactions</div>
+    <div class="tab" data-filter="sent">Sent</div>
+    <div class="tab" data-filter="received">Received</div>
+    <div class="tab" data-filter="pending">Pending</div>
+</div>
+
+<!-- Balance Summary -->
+<div class="balance-card" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);">
+    <div class="balance-label">Account Balance</div>
+    <div class="balance-amount">₹ {{ account.balance|default:"0" }}</div>
+    <div class="balance-account">{{ account.account_number|default:"N/A" }}</div>
+</div>
+
+<!-- Transactions List -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-list"></i> All Transactions
+    </div>
+    
+    {% if bank_transactions or transfers %}
+    <div class="transactions-container" style="max-height: 600px; overflow-y: auto;">
+        <!-- Transfers (Money Sent) -->
+        {% for transfer in transfers %}
+        <div class="transaction-item" 
+             data-type="sent" 
+             data-status="{{ transfer.status|lower }}">
+            <div class="transaction-icon debit">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">
+                    Sent to {{ transfer.beneficiary.name|default:transfer.receiver_name }}
+                    <span class="status-badge {{ transfer.status|lower }}">{{ transfer.status }}</span>
+                </div>
+                <div class="transaction-subtitle">
+                    {{ transfer.created_at|date:"d M Y, H:i" }} • {{ transfer.transaction_id }}
+                    {% if transfer.note %} • {{ transfer.note }}{% endif %}
+                </div>
+            </div>
+            <div class="transaction-amount debit">
+                -₹ {{ transfer.amount }}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Bank Transactions -->
+        {% for tx in bank_transactions %}
+        <div class="transaction-item" 
+             data-type="{% if tx.transaction_type == 'CREDIT' %}received{% else %}sent{% endif %}"
+             data-status="completed">
+            <div class="transaction-icon {% if tx.transaction_type == 'CREDIT' %}credit{% else %}debit{% endif %}">
+                <i class="fa-solid {% if tx.transaction_type == 'CREDIT' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">{{ tx.description }}</div>
+                <div class="transaction-subtitle">{{ tx.created_at|date:"d M Y, H:i" }}</div>
+            </div>
+            <div class="transaction-amount {% if tx.transaction_type == 'CREDIT' %}credit{% else %}debit{% endif %}">
+                {% if tx.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}₹ {{ tx.amount }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-receipt"></i>
+        <p>No transactions yet</p>
+        <a href="{% url 'send-money' %}" class="btn btn-primary">Send Money</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Filter Tab Styles */
+.tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+}
+
+.tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    position: relative;
+}
+
+.tab:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.tab.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* Transaction Filter Effects */
+.transaction-item {
+    transition: opacity 0.3s ease, transform 0.2s ease;
+    opacity: 1;
+}
+
+.transaction-item.hidden {
+    display: none;
+}
+
+.transaction-item.filtered {
+    opacity: 0.4;
+}
+
+/* Smooth container */
+.transactions-container {
+    position: relative;
+}
+</style>
+
+<script>
+// Transaction Filter Functionality (jQuery - Bootstrap available)
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab');
+    const transactions = document.querySelectorAll('.transaction-item');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter transactions
+            transactions.forEach(item => {
+                const type = item.getAttribute('data-type');
+                const status = item.getAttribute('data-status');
+                
+                item.classList.remove('hidden', 'filtered');
+                
+                if (filter === 'all') {
+                    // Show all
+                    item.style.display = 'flex';
+                } else if (filter === 'sent') {
+                    if (type !== 'sent') {
+                        item.classList.add('hidden');
+                    }
+                } else if (filter === 'received') {
+                    if (type !== 'received') {
+                        item.classList.add('hidden');
+                    }
+                } else if (filter === 'pending') {
+                    if (status !== 'pending') {
+                        item.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    });
+    
+    // Initial state: show all
+    transactions.forEach(item => {
+        item.style.display = 'flex';
+    });
+});
+</script>
+{% endblock %}

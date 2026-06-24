@@ -1,0 +1,124 @@
+{% extends 'base.html'%} 
+{% load static %}
+{% load currency_filters %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4"><i class="fas fa-cog me-2"></i> Preferences</h2>
+        </div>
+    </div>
+
+    {% include 'partials/_messages.html' %}
+    
+    <!-- Unified Form -->
+    <form action="{% url 'preferences'%}" method="post">
+        {% csrf_token %}
+        
+        <!-- Currency Settings Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3"><i class="fas fa-money-bill-wave me-2"></i> Currency Settings</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="inputGroupSelect04" class="form-label"> Preferred Currency</label>
+                        <select name="currency" class="form-select" id="inputGroupSelect04">
+                            {% if user_preferences.currency%}
+                            <option name="currency" selected value="{{user_preferences.currency}}">{{user_preferences.currency}} - {{currencies_dict|dict_key:user_preferences.currency|default:user_preferences.currency}}
+                            </option>
+                            {% endif %} 
+                            {% for currency in currencies %}
+                            <option name="currency" value="{{currency.name}}" {% if user_preferences.currency == currency.name %}selected{% endif %}>
+                                {{currency.name}} - {{currency.value}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Select your preferred currency for displaying amounts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expense Limit Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3"><i class="fas fa-chart-line me-2"></i> Expense Limit</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="dailyExpenseLimit" class="form-label">Set Daily Expense Limit</label>
+                        <div class="mb-2">
+                            <span class="badge bg-info">
+                                Current Limit: {{ daily_expense_limit }}
+                            </span>
+                        </div>
+                        <input type="number" class="form-control" id="dailyExpenseLimit" 
+                            placeholder="Enter daily Expense Limit" 
+                            name="daily_expense_limit"
+                            value="{{ daily_expense_limit }}">
+                        <div class="form-text">Set a daily spending limit to get notified when exceeded</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notification Settings Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3"><i class="fas fa-bell me-2"></i> Notification Settings</h5>
+                
+                <!-- Enable/Disable Toggle -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="dailySummaryEnabled" 
+                                name="daily_summary_enabled" 
+                                {% if user_preferences.daily_summary_enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="dailySummaryEnabled">
+                                Enable Daily Spending Summary
+                            </label>
+                        </div>
+                        <div class="form-text">Receive a daily summary of your spending via email</div>
+                    </div>
+                </div>
+                
+                <!-- Timezone Selection -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="timezoneSelect" class="form-label">Your Timezone</label>
+                        <select name="timezone" class="form-select" id="timezoneSelect">
+                            {% for tz_code, tz_name in timezones %}
+                                <option value="{{ tz_code }}" 
+                                    {% if user_preferences.timezone == tz_code %}selected{% endif %}>
+                                    {{ tz_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Select your timezone to receive summaries at your local time</div>
+                    </div>
+                </div>
+                
+                <!-- Summary Time -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="summaryTimeInput" class="form-label">Preferred Summary Time</label>
+                        <input type="time" class="form-control" id="summaryTimeInput" 
+                            name="daily_summary_time" 
+                            value="{{ user_preferences.daily_summary_time|default:'00:00' }}">
+                        <div class="form-text">Set when you want to receive your daily summary (default: 12:00 AM)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <div class="text-center mt-4 mb-5">
+            <button type="submit" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-save me-2"></i> Save All Preferences
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+

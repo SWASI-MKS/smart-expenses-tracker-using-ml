@@ -1,0 +1,44 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Goal Achieved! - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">🎉 Congratulations!</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    <p>Amazing news! You've successfully achieved one of your savings goals!</p>
+    
+    <div class="info-box" style="background: #dcfce7; border: 2px solid #16a34a;">
+        <div class="info-label" style="color: #15803d;">Goal Name</div>
+        <div class="info-value" style="font-size: 24px; margin-bottom: 15px;">{{ goal_name }}</div>
+        
+        <div style="display: flex; justify-content: space-between;">
+            <div>
+                <div class="info-label" style="color: #15803d;">Target Amount</div>
+                <div class="info-value">₹{{ target_amount }}</div>
+            </div>
+            <div>
+                <div class="info-label" style="color: #15803d;">Achievement Date</div>
+                <div class="info-value">{{ achievement_date }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <p style="text-align: center; font-size: 18px; color: #16a34a; font-weight: 600;">
+        ✨ Goal Achieved! Well done! ✨
+    </p>
+    
+    <center>
+        <a href="{{ site_url }}/goals" class="btn btn-success">View Your Goals</a>
+    </center>
+    
+    <p>Your dedication to saving is paying off! Why not set a new goal to keep the momentum going?</p>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        You're receiving this email because you achieved a savings goal.
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

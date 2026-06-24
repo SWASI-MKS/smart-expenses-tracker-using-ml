@@ -1,0 +1,82 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>💳 {{ card.card_name }}</h1>
+    <a href="{% url 'cards-view' %}" class="btn btn-secondary">← Back to Cards</a>
+</div>
+
+<!-- Card Info -->
+<div class="card-item">
+    <div class="card-icon">
+        <i class="fa-brands fa-cc-{{ card.card_brand|lower }}"></i>
+    </div>
+    <div class="card-details">
+        <div class="card-name">{{ card.card_name }}</div>
+        <div class="card-number">**** **** **** {{ card.last_four_digits }}</div>
+    </div>
+    <div class="card-info">
+        <div class="card-label">{{ card.get_card_type_display }}</div>
+        <span class="status-badge {% if card.is_active %}success{% else %}failed{% endif %}">
+            {% if card.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+    </div>
+</div>
+
+<!-- Card Transactions -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-list"></i> Transaction History
+    </div>
+    
+    {% if transactions %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transactions %}
+            <tr>
+                <td>{{ tx.transaction_date|date:"d M Y" }}</td>
+                <td>
+                    <div style="font-weight: 600;">{{ tx.merchant_name|default:tx.description }}</div>
+                    <div style="font-size: 12px; color: var(--muted);">{{ tx.description }}</div>
+                </td>
+                <td>{{ tx.category|default:"Other" }}</td>
+                <td style="color: #dc2626; font-weight: 600;">₹ {{ tx.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-receipt"></i>
+        <p>No transactions on this card yet</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Total Spent -->
+{% if transactions %}
+<div class="section-card">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-value">₹ {% widthratio transactions|length 1 0 %}</div>
+            <div class="stat-label">Transactions</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #dc2626;">
+                ₹ {% with total=0 %}{% for tx in transactions %}{% widthratio tx.amount 1 1 %}{% endfor %}{% endwith %}
+            </div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

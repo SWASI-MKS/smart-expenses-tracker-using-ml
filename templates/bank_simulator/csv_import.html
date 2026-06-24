@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Import - Bank Simulator</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --text: #0f172a;
+            --muted: #64748b;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+        }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        h1, h2 { margin-top: 0; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        .info-box code {
+            background: #dbeafe;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📥 Import Bank Statement</h1>
+            <p>Upload a CSV file to import transactions into your card.</p>
+
+            <div class="info-box">
+                <h3>Expected CSV Format</h3>
+                <p>Your CSV should have the following columns:</p>
+                <code>date,description,amount</code>
+                <p>Example:</p>
+                <pre>date,description,amount
+25-01-2024,Zomato order,450
+26-01-2024,Uber ride,220
+27-01-2024,Amazon purchase,1299</pre>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <label>Select Card</label>
+                <select name="card_id" required>
+                    <option value="">-- Select a card --</option>
+                    {% for card in cards %}
+                        <option value="{{ card.id }}">
+                            {{ card.card_name }} (**** {{ card.last_four_digits }})
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label>Upload CSV File</label>
+                <input type="file" name="csv_file" accept=".csv" required>
+
+                <button type="submit" class="btn-primary">Import Transactions</button>
+                <a href="{% url 'bank-dashboard' %}" class="btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

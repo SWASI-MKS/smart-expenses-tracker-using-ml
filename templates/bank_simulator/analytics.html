@@ -1,0 +1,115 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>📊 Spending Analytics</h1>
+</div>
+
+<!-- Monthly Summary -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-calendar"></i> This Month Summary
+    </div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-value">₹ {{ monthly_summary.total_credit|default:"0" }}</div>
+            <div class="stat-label">Total Income</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #dc2626;">₹ {{ monthly_summary.total_debit|default:"0" }}</div>
+            <div class="stat-label">Total Spending</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ monthly_summary.card_transactions|default:"0" }}</div>
+            <div class="stat-label">Card Transactions</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">₹ {{ monthly_summary.total_credit|default:"0"|add:monthly_summary.total_debit|default:"0"|stringformat:"-0.2f" }}</div>
+            <div class="stat-label">Net Flow</div>
+        </div>
+    </div>
+</div>
+
+<!-- Spending Insights -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-lightbulb"></i> Spending Insights
+    </div>
+    {% if spending_insights %}
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-value">₹ {{ spending_insights.current_month_spending|default:"0" }}</div>
+            <div class="stat-label">This Month</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">₹ {{ spending_insights.last_month_spending|default:"0" }}</div>
+            <div class="stat-label">Last Month</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value {% if spending_insights.spending_change_percent > 0 %}debit{% else %}credit{% endif %}">
+                {{ spending_insights.spending_change_percent|default:"0" }}%
+            </div>
+            <div class="stat-label">Change</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">₹ {{ spending_insights.average_transaction|default:"0" }}</div>
+            <div class="stat-label">Avg Transaction</div>
+        </div>
+    </div>
+    {% else %}
+    <p style="color: var(--muted);">No spending data available yet.</p>
+    {% endif %}
+</div>
+
+<!-- Category Breakdown -->
+{% if monthly_summary.category_breakdown %}
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-chart-pie"></i> Spending by Category
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in monthly_summary.category_breakdown %}
+            <tr>
+                <td>{{ cat.category|default:"Other" }}</td>
+                <td style="color: #dc2626; font-weight: 600;">₹ {{ cat.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Credit Utilization -->
+{% if cards_utilization %}
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-credit-card"></i> Credit Card Utilization
+    </div>
+    {% for card_util in cards_utilization %}
+        {% if card_util.credit_limit %}
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <strong>{{ card_util.card.card_name }}</strong>
+                <span>{{ card_util.utilization }}%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" style="background: var(--border);">
+                    <div class="progress-fill {% if card_util.utilization >= 80 %}danger{% elif card_util.utilization >= 50 %}warning{% endif %}" 
+                         style="width: {{ card_util.utilization }}%"></div>
+                </div>
+            </div>
+            <div class="stat-label">₹{{ card_util.total_spent }} of ₹{{ card_util.credit_limit }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,696 @@
+/* ==========================================
+   Enterprise Financial Dashboard Styles
+   ========================================== */
+
+/* ================= VARIABLES ================= */
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --info-color: #36b9cc;
+    --dark-color: #5a5c69;
+    --light-bg: #f8f9fa;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --card-shadow-hover: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition-speed: 0.3s;
+    --border-radius: 0.75rem;
+}
+
+/* Dark mode variables */
+body.dark {
+    --light-bg: #1a1d23;
+    --card-bg: #1e2228;
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+}
+
+/* ================= BASE STYLES ================= */
+.kpi-card, .dashboard-card, .health-score-card {
+    transition: all var(--transition-speed) ease;
+    border-radius: var(--border-radius) !important;
+}
+
+.kpi-card:hover, .dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* ================= KPI CARDS ================= */
+.kpi-card .card-body {
+    padding: 1.25rem;
+}
+
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.bg-success-light {
+    background: rgba(28, 200, 138, 0.15);
+}
+
+.bg-danger-light {
+    background: rgba(231, 74, 59, 0.15);
+}
+
+.bg-warning-light {
+    background: rgba(246, 194, 62, 0.15);
+}
+
+.bg-info-light {
+    background: rgba(54, 185, 204, 0.15);
+}
+
+/* ================= HEALTH SCORE ================= */
+.health-score-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.health-score-card .card-body {
+    padding: 1.5rem;
+}
+
+.health-score-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(#1cc88a 0%, #e9ecef 0%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+}
+
+.health-score-circle::before {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: inherit;
+}
+
+.health-score-circle .score-value {
+    position: relative;
+    z-index: 1;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.score-breakdown small {
+    opacity: 0.9;
+}
+
+.score-breakdown .progress {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.score-breakdown .progress-bar {
+    border-radius: 3px;
+}
+
+/* ================= BUDGET PROGRESS ================= */
+.progress {
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 1s ease-in-out;
+}
+
+/* ================= CHARTS ================= */
+.chart-container {
+    position: relative;
+}
+
+/* ================= CATEGORY DOT ================= */
+.category-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* ================= AI INSIGHTS ================= */
+.insight-card {
+    backdrop-filter: blur(10px);
+    transition: all var(--transition-speed) ease;
+}
+
+.insight-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Light mode AI Insights - text should be dark for readability */
+.insight-card small,
+.insight-card .text-black {
+    color: #2d3748 !important;
+}
+
+/* Dark mode AI Insights */
+body.dark .insight-card {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode - all text white */
+body.dark .insight-card,
+body.dark .insight-card *,
+body.dark .insight-card small,
+body.dark .insight-card p,
+body.dark .insight-card span,
+body.dark .insight-card div {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Keep icon colors visible in dark mode */
+body.dark .insight-card .text-success,
+body.dark .insight-card i.text-success {
+    color: #4ade80 !important;
+    filter: drop-shadow(0 2px 4px rgba(74, 222, 128, 0.3));
+}
+
+body.dark .insight-card .text-warning,
+body.dark .insight-card i.text-warning {
+    color: #facc15 !important;
+    filter: drop-shadow(0 2px 4px rgba(250, 204, 21, 0.3));
+}
+
+body.dark .insight-card .text-danger,
+body.dark .insight-card i.text-danger {
+    color: #f87171 !important;
+    filter: drop-shadow(0 2px 4px rgba(248, 113, 113, 0.3));
+}
+
+body.dark .insight-card .text-info,
+body.dark .insight-card i.text-info {
+    color: #22d3ee !important;
+    filter: drop-shadow(0 2px 4px rgba(34, 211, 238, 0.3));
+}
+
+/* Hover effect for insight cards in dark mode */
+body.dark .insight-card:hover {
+    background: rgba(255, 255, 255, 0.18) !important;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Ensure the parent card background is properly set in dark mode */
+body.dark .card[style*="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"] {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+/* ================= SAVINGS GOALS ================= */
+.goal-item {
+    padding: 0.75rem;
+    background: var(--light-bg);
+    border-radius: 8px;
+    transition: all var(--transition-speed) ease;
+}
+
+.goal-item:hover {
+    background: rgba(78, 115, 223, 0.05);
+}
+
+.goal-item .progress {
+    background: #e9ecef;
+}
+
+body.dark .goal-item {
+    background: #2d3138;
+}
+
+body.dark .goal-item:hover {
+    background: #363b42;
+}
+
+body.dark .goal-item .progress {
+    background: #3d434b;
+}
+
+/* ================= ACTIVITY TIMELINE ================= */
+.activity-timeline {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.timeline-item {
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all var(--transition-speed) ease;
+}
+
+.timeline-item:hover {
+    background: var(--light-bg);
+}
+
+.timeline-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(78, 115, 223, 0.1);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+body.dark .timeline-item:hover {
+    background: #2d3138;
+}
+
+body.dark .timeline-icon {
+    background: rgba(78, 115, 223, 0.2);
+}
+
+/* ================= PREDICTION CARDS ================= */
+.dashboard-card .card-body {
+    padding: 1.25rem;
+}
+
+.confidence-pill {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.kpi-card, .health-score-card, .card.border-0 {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.1s; }
+.kpi-card:nth-child(2) { animation-delay: 0.2s; }
+.kpi-card:nth-child(3) { animation-delay: 0.3s; }
+.kpi-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Number animation */
+.animate-number {
+    transition: all 0.5s ease;
+}
+
+/* ================= SKELETON LOADING ================= */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+body.dark .skeleton {
+    background: linear-gradient(90deg, #2d3138 25%, #3d434b 50%, #2d3138 75%);
+    background-size: 200% 100%;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    .health-score-card .card-body .row {
+        flex-direction: column;
+    }
+    
+    .health-score-card .col-md-3 {
+        margin-bottom: 1.5rem;
+    }
+    
+    .kpi-card {
+        margin-bottom: 0.5rem;
+    }
+    
+    .activity-timeline {
+        max-height: 250px;
+    }
+}
+
+/* ================= DARK MODE OVERRIDES ================= */
+body.dark .card {
+    background-color: #1e2228;
+    border-color: #2d3138;
+}
+
+body.dark .card-body {
+    background-color: #1e2228;
+}
+
+body.dark .text-muted {
+    color: #9ca3af !important;
+}
+
+body.dark .kpi-card, 
+body.dark .dashboard-card,
+body.dark .health-score-card {
+    background-color: #1e2228;
+    border-color: #2d3138;
+}
+
+body.dark .progress {
+    background: #3d434b;
+}
+
+body.dark .timeline-item:hover {
+    background: #2d3138;
+}
+
+/* ================= TOOLTIP STYLES ================= */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background: #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ================= BADGE STYLES ================= */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* ================= DROPDOWN MENU ================= */
+.dropdown-menu {
+    border: 0;
+    box-shadow: var(--card-shadow-hover);
+    border-radius: 8px;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background: rgba(78, 115, 223, 0.1);
+    color: var(--primary-color);
+}
+
+/* ================= BUTTONS ================= */
+.btn {
+    transition: all var(--transition-speed) ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* ================= SCROLLBAR ================= */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+body.dark ::-webkit-scrollbar-track {
+    background: #2d3138;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+    background: #4a4f57;
+}
+
+/* ================= AI INSIGHTS STYLES ================= */
+.ai-insights-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.ai-section {
+    padding: 1rem 0;
+    border-top: 1px solid #e9ecef;
+}
+
+body.dark .ai-section {
+    border-top-color: #3d434b;
+}
+
+/* Health Score Display */
+.health-score-display .score-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(#4e73df calc(var(--score, 0) * 1%), #e9ecef 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+}
+
+.health-score-display .score-circle::before {
+    content: '';
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: inherit;
+}
+
+.health-score-display .score-value {
+    position: relative;
+    z-index: 1;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Metric bars */
+.metric-bar {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+body.dark .metric-bar {
+    background: #2d3138;
+}
+
+/* Forecast cards */
+.forecast-card {
+    transition: all 0.3s ease;
+}
+
+.forecast-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Prediction card */
+.prediction-card {
+    transition: all 0.3s ease;
+}
+
+.prediction-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Anomaly cards */
+.anomaly-card {
+    transition: all 0.3s ease;
+}
+
+.anomaly-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Suggestion cards */
+.suggestion-card {
+    transition: all 0.3s ease;
+}
+
+.suggestion-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Subscription styles */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.subscription-item .sub-icon {
+    font-size: 1.5rem;
+    color: #6f42c1;
+}
+
+.subscription-summary {
+    transition: all 0.3s ease;
+}
+
+.subscription-summary:hover {
+    transform: translateY(-2px);
+}
+
+/* Merchant card */
+.merchant-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.merchant-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Goal card */
+.goal-card {
+    transition: all 0.3s ease;
+}
+
+.goal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Risk card */
+.risk-card {
+    transition: all 0.3s ease;
+}
+
+.risk-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Efficiency card */
+.efficiency-card {
+    transition: all 0.3s ease;
+}
+
+.efficiency-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Total savings card */
+.total-savings-card {
+    transition: all 0.3s ease;
+    border: 2px solid #1cc88a;
+}
+
+.total-savings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(28, 200, 138, 0.3);
+}
+
+/* Score breakdown animations */
+.score-breakdown .progress-bar {
+    animation: progressFill 1s ease-out forwards;
+}
+
+@keyframes progressFill {
+    from {
+        width: 0;
+    }
+}
+
+/* AI Insights animations */
+.ai-section {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.ai-section:nth-child(2) { animation-delay: 0.1s; }
+.ai-section:nth-child(3) { animation-delay: 0.2s; }
+.ai-section:nth-child(4) { animation-delay: 0.3s; }
+.ai-section:nth-child(5) { animation-delay: 0.4s; }
+.ai-section:nth-child(6) { animation-delay: 0.5s; }
+.ai-section:nth-child(7) { animation-delay: 0.6s; }
+.ai-section:nth-child(8) { animation-delay: 0.7s; }
+.ai-section:nth-child(9) { animation-delay: 0.8s; }
+
+/* ================= PRINT STYLES ================= */
+@media print {
+    .kpi-card, .dashboard-card, .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .health-score-card {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .health-score-card * {
+        color: black !important;
+    }
+}

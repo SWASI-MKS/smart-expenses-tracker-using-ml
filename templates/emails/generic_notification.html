@@ -1,0 +1,21 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Notification - ExpenseWise{% endblock %}
+
+{% block content %}
+    <h2 style="margin-top: 0; color: #0f172a;">Notification</h2>
+    
+    <p>Hello <strong>{{ user_name }}</strong>,</p>
+    
+    <p>You have a new notification from ExpenseWise.</p>
+    
+    <center>
+        <a href="{{ site_url }}/dashboard" class="btn">View Dashboard</a>
+    </center>
+    
+    <div class="divider"></div>
+    
+    <p style="font-size: 13px; color: #64748b; margin: 0;">
+        <a href="{{ site_url }}/preferences">Manage email preferences</a>
+    </p>
+{% endblock %}

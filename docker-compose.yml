@@ -1,0 +1,105 @@
+# Docker Compose for Personal Finance Management System
+# ====================================================
+
+version: '3.8'
+
+services:
+  # Django Application
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=0
+      - DJANGO_SETTINGS_MODULE=expensetracker.settings.prod
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=expensetracker_db
+      - DATABASE_USER=root
+      - DATABASE_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    command: gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120 expensetracker.wsgi:application
+
+  # Celery Worker
+  celery:
+    build: .
+    command: celery -A expensetracker worker -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=expensetracker.settings.prod
+      - DATABASE_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+
+  # Celery Beat (Scheduler)
+  celery-beat:
+    build: .
+    command: celery -A expensetracker beat -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=expensetracker.settings.prod
+      - DATABASE_HOST=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-password}
+      - MYSQL_DATABASE=expensetracker_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Nginx (Optional - for production)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - web
+
+volumes:
+  mysql_data:
+  redis_data:
+  static_volume:
+  media_volume:

@@ -1,0 +1,1537 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load category_tags %}
+
+{% block content %}
+<style>
+    /* ================= ENHANCED FINANCIAL INTELLIGENCE DASHBOARD ================= */
+    
+    :root {
+        /* Premium Fintech Palette */
+        --primary: #4f46e5;
+        --primary-light: #818cf8;
+        --primary-dark: #3730a3;
+        --secondary: #7c3aed;
+        --success: #10b981;
+        --success-light: #d1fae5;
+        --warning: #f59e0b;
+        --warning-light: #fef3c7;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --dark: #0f172a;
+        --light: #f8fafc;
+        --white: #ffffff;
+        
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --card-border: 1px solid rgba(226, 232, 240, 0.8);
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        
+        --gradient-primary: linear-gradient(135deg, #4f46e5, #7c3aed);
+        --gradient-success: linear-gradient(135deg, #10b981, #059669);
+        --gradient-warning: linear-gradient(135deg, #f59e0b, #d97706);
+        --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+        --gradient-dark: linear-gradient(135deg, #0f172a, #1e293b);
+        
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+        --shadow-hover: 0 20px 25px -5px rgba(63, 63, 125, 0.08), 0 10px 10px -5px rgba(63, 63, 125, 0.04);
+        
+        --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        --border-radius: 16px;
+    }
+
+    /* ================= PAGE ANIMATIONS ================= */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    .container-fluid {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ================= HEADER STYLES ================= */
+    .page-header {
+        background: var(--gradient-primary);
+        padding: 35px;
+        border-radius: var(--border-radius);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+        animation: rotate 25s linear infinite;
+    }
+
+    .page-header h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.025em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .page-header p {
+        color: rgba(255,255,255,0.85);
+        font-size: 0.95rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ================= FINANCIAL HEALTH SCORE CARD ================= */
+    .health-score-card {
+        background: var(--gradient-dark);
+        border-radius: var(--border-radius) !important;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+    }
+
+    .health-score-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .health-score-circle {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        transition: var(--transition);
+        border: 4px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .health-score-circle .score-value {
+        font-size: 2.75rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.05em;
+    }
+
+    .score-breakdown {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        padding: 20px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        transition: var(--transition);
+    }
+
+    .score-breakdown:hover {
+        background: rgba(255,255,255,0.06);
+        transform: translateY(-2px);
+    }
+
+    .score-breakdown .progress {
+        background: rgba(255,255,255,0.1);
+        border-radius: 100px;
+    }
+
+    /* ================= KPI CARDS ================= */
+    .kpi-card {
+        background: var(--white);
+        border-radius: var(--border-radius) !important;
+        overflow: hidden;
+        transition: var(--transition);
+        border: var(--card-border) !important;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-hover);
+        border-color: rgba(63, 66, 238, 0.15) !important;
+    }
+
+    .kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        transition: var(--transition);
+    }
+
+    .kpi-card:hover .kpi-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .bg-success-light {
+        background: rgba(16, 185, 129, 0.08) !important;
+        color: var(--success);
+    }
+
+    .bg-danger-light {
+        background: rgba(239, 68, 68, 0.08) !important;
+        color: var(--danger);
+    }
+
+    /* ================= BUDGET UTILIZATION CARD ================= */
+    .budget-card {
+        background: var(--white);
+        border-radius: var(--border-radius) !important;
+        border: var(--card-border) !important;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    
+    .budget-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .budget-card h6 {
+        color: var(--text-main) !important;
+    }
+
+    .progress {
+        background: #f1f5f9;
+        border-radius: 100px;
+        overflow: hidden;
+    }
+
+    /* ================= AI INSIGHTS PANEL ================= */
+    .ai-header-card {
+        background: linear-gradient(135deg, #1e1b4b, #31108f);
+        border-radius: var(--border-radius) !important;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .insight-card {
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 18px;
+        transition: var(--transition);
+    }
+
+    .insight-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.15);
+    }
+
+    /* ================= SECTION CARDS ================= */
+    .ai-section {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-md);
+        border: var(--card-border);
+        transition: var(--transition);
+    }
+
+    .ai-section:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--gradient-primary);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* ================= FORECAST CARDS ================= */
+    .forecast-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px;
+        transition: var(--transition);
+        height: 100%;
+    }
+
+    .forecast-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+
+    .forecast-card.bg-success {
+        background: var(--gradient-success);
+        border: none;
+    }
+
+    .forecast-card.bg-danger {
+        background: var(--gradient-danger);
+        border: none;
+    }
+
+    /* ================= ANOMALY CARDS ================= */
+    .anomaly-card {
+        background: var(--white);
+        border: 1px solid #f1f5f9;
+        border-left: 4px solid;
+        border-radius: 12px;
+        padding: 18px;
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .anomaly-card:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .anomaly-card.border-danger {
+        border-left-color: var(--danger);
+    }
+
+    .anomaly-card.border-warning {
+        border-left-color: var(--warning);
+    }
+
+    /* ================= SUBSCRIPTION CARDS ================= */
+    .subscription-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        transition: var(--transition);
+        text-align: center;
+    }
+
+    .subscription-item:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        background: var(--white);
+        border-color: var(--primary);
+    }
+
+    .subscription-item .sub-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(79, 70, 229, 0.08);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        transition: var(--transition);
+    }
+
+    .subscription-item:hover .sub-icon {
+        background: var(--primary);
+    }
+    
+    .subscription-item:hover .sub-icon i {
+        color: white;
+    }
+
+    .subscription-item .sub-icon i {
+        font-size: 1.25rem;
+        color: var(--primary);
+    }
+
+    /* ================= MERCHANT CARDS ================= */
+    .merchant-card {
+        background: var(--white);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 15px;
+        transition: var(--transition);
+    }
+
+    .merchant-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+    }
+
+    /* ================= GOAL CARDS ================= */
+    .goal-card {
+        background: var(--white);
+        border-radius: 14px;
+        padding: 18px;
+        transition: var(--transition);
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .goal-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary);
+    }
+
+    /* ================= RISK CARDS ================= */
+    .risk-card {
+        border-radius: 14px;
+        padding: 20px;
+        transition: var(--transition);
+        text-align: center;
+        height: 100%;
+    }
+
+    .risk-card.bg-success { background: var(--gradient-success); }
+    .risk-card.bg-warning { background: var(--gradient-warning); }
+    .risk-card.bg-danger { background: var(--gradient-danger); }
+
+    .risk-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    /* ================= EFFICIENCY CARDS ================= */
+    .efficiency-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        transition: var(--transition);
+    }
+
+    .efficiency-card:hover {
+        transform: translateX(4px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .total-savings-card {
+        background: var(--gradient-success);
+        border-radius: 14px;
+        padding: 25px;
+        text-align: center;
+    }
+
+    /* ================= SAVINGS GOALS & TIMELINE SECTIONS ================= */
+    .savings-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        border: var(--card-border);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    
+    .savings-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .savings-card h6 {
+        color: var(--text-main) !important;
+    }
+    
+    .savings-card a {
+        background: #f1f5f9 !important;
+        color: var(--primary) !important;
+        border: none !important;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .savings-card a:hover {
+        background: var(--primary) !important;
+        color: white !important;
+    }
+
+    .goal-item {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 15px;
+        transition: var(--transition);
+        border: 1px solid #e2e8f0;
+    }
+
+    .goal-item:hover {
+        transform: translateX(4px);
+        border-color: var(--primary);
+    }
+    
+    .goal-item span {
+        color: var(--text-main) !important;
+    }
+
+    .goal-item .progress {
+        background: #e2e8f0;
+    }
+
+    .goal-item .progress-bar {
+        background: var(--gradient-primary);
+    }
+
+    .timeline-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        border: var(--card-border);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    
+    .timeline-card:hover {
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .timeline-card h6 {
+        color: var(--text-main) !important;
+    }
+    
+    .timeline-card a {
+        background: #f1f5f9 !important;
+        color: var(--primary) !important;
+        border: none !important;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .timeline-card a:hover {
+        background: var(--primary) !important;
+        color: white !important;
+    }
+
+    .activity-timeline {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .timeline-item {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        transition: var(--transition);
+        border: 1px solid #e2e8f0;
+    }
+
+    .timeline-item:hover {
+        transform: translateX(4px);
+        border-color: var(--primary);
+    }
+    
+    .timeline-item span {
+        color: var(--text-main) !important;
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(79, 70, 229, 0.08);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+    .timeline-icon i {
+        font-size: 1.1rem;
+        color: var(--primary);
+    }
+
+    .timeline-item:hover .timeline-icon {
+        background: var(--primary);
+    }
+    
+    .timeline-item:hover .timeline-icon i {
+        color: white;
+    }
+
+    /* ================= PREDICTION CARDS ================= */
+    .prediction-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        transition: var(--transition);
+        border: var(--card-border);
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+    }
+
+    .prediction-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-hover);
+    }
+    
+    .prediction-card h6 {
+        color: var(--text-muted) !important;
+    }
+    
+    .prediction-card h3 {
+        color: var(--text-main) !important;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    
+    .prediction-card small {
+        color: var(--text-muted) !important;
+    }
+
+    .prediction-card.today { border-top: 4px solid var(--success); }
+    .prediction-card.tomorrow { border-top: 4px solid var(--warning); }
+    .prediction-card.week { border-top: 4px solid var(--primary); }
+    .prediction-card.month { border-top: 4px solid var(--danger); }
+
+    /* ================= DARK MODE SUPPORT ================= */
+    body.dark {
+        --card-bg: rgba(17, 24, 39, 0.85);
+        --card-border: 1px solid rgba(55, 65, 81, 0.5);
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --white: #111827;
+        --light: #090d16;
+    }
+    
+    body.dark .content {
+        background-color: #090d16;
+    }
+    
+    body.dark .kpi-card,
+    body.dark .budget-card,
+    body.dark .ai-section,
+    body.dark .forecast-card,
+    body.dark .anomaly-card,
+    body.dark .subscription-item,
+    body.dark .merchant-card,
+    body.dark .goal-card,
+    body.dark .risk-card,
+    body.dark .efficiency-card,
+    body.dark .savings-card,
+    body.dark .timeline-card,
+    body.dark .prediction-card {
+        background-color: var(--white) !important;
+        border-color: rgba(55, 65, 81, 0.5) !important;
+    }
+    
+    body.dark .forecast-card,
+    body.dark .subscription-item,
+    body.dark .efficiency-card,
+    body.dark .goal-item,
+    body.dark .timeline-item {
+        background-color: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+    
+    body.dark .savings-card a,
+    body.dark .timeline-card a {
+        background: #1f2937 !important;
+        color: var(--primary-light) !important;
+    }
+    
+    body.dark .savings-card a:hover,
+    body.dark .timeline-card a:hover {
+        background: var(--primary) !important;
+        color: white !important;
+    }
+
+    /* ================= RESPONSIVE ================= */
+    @media (max-width: 768px) {
+        .page-header h2 {
+            font-size: 1.6rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+        
+        .prediction-card {
+            margin-bottom: 15px;
+        }
+    }
+</style>
+
+<div class="container-fluid px-4 mt-4">
+    <!-- Header Section with Gradient -->
+    <div class="page-header">
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <i class="fas fa-chart-line fa-3x text-white"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-0">Financial Intelligence</h2>
+                <p class="mb-0">Your comprehensive financial dashboard with AI-powered insights</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FINANCIAL HEALTH SCORE ================= -->
+    {% if financial_health %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card health-score-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="health-score-circle" data-score="{{ financial_health.score }}">
+                                <span class="score-value">{{ financial_health.score }}</span>
+                            </div>
+                            <h6 class="mt-2 mb-0 text-white">Financial Health Score</h6>
+                            <small class="text-white-50">{{ financial_health.explanation }}</small>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="score-breakdown">
+                                <div class="row g-3">
+                                    <div class="col-6 col-lg-3">
+                                        <div class="score-breakdown">
+                                            <div class="d-flex justify-content-between mb-1 text-white">
+                                                <span>Spending vs Income</span>
+                                                <span class="fw-bold">{{ financial_health.income_score }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: {{ financial_health.income_score }}%; background: #4e73df;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3">
+                                        <div class="score-breakdown">
+                                            <div class="d-flex justify-content-between mb-1 text-white">
+                                                <span>Budget Adherence</span>
+                                                <span class="fw-bold">{{ financial_health.budget_score }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: {{ financial_health.budget_score }}%; background: #1cc88a;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3">
+                                        <div class="score-breakdown">
+                                            <div class="d-flex justify-content-between mb-1 text-white">
+                                                <span>Savings Consistency</span>
+                                                <span class="fw-bold">{{ financial_health.savings_score }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: {{ financial_health.savings_score }}%; background: #f6c23e;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-lg-3">
+                                        <div class="score-breakdown">
+                                            <div class="d-flex justify-content-between mb-1 text-white">
+                                                <span>Spending Stability</span>
+                                                <span class="fw-bold">{{ financial_health.volatility_score }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: {{ financial_health.volatility_score }}%; background: #858796;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= TOP KPI CARDS ================= -->
+    <div class="row g-4 mb-4">
+        <!-- Total Income -->
+        {% if spending_vs_income %}
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Total Income</p>
+                            <h4 class="fw-bold mb-0 text-success">{{ currency_symbol }}{{ spending_vs_income.income.current|intcomma }}</h4>
+                            <small class="{% if spending_vs_income.income.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                <i class="fas {% if spending_vs_income.income.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                {{ spending_vs_income.income.change }}% vs last month
+                            </small>
+                        </div>
+                        <div class="kpi-icon bg-success-light">
+                            <i class="fas fa-arrow-down text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Total Expenses</p>
+                            <h4 class="fw-bold mb-0 text-danger">{{ currency_symbol }}{{ spending_vs_income.expenses.current|intcomma }}</h4>
+                            <small class="{% if spending_vs_income.expenses.change > 0 %}text-danger{% else %}text-success{% endif %}">
+                                <i class="fas {% if spending_vs_income.expenses.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                {{ spending_vs_income.expenses.change }}% vs last month
+                            </small>
+                        </div>
+                        <div class="kpi-icon bg-danger-light">
+                            <i class="fas fa-arrow-up text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Savings -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Net Savings</p>
+                            <h4 class="fw-bold mb-0 {% if spending_vs_income.savings.current > 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ currency_symbol }}{{ spending_vs_income.savings.current|intcomma }}
+                            </h4>
+                            <small class="{% if spending_vs_income.savings.change > 0 %}text-success{% else %}text-danger{% endif %}">
+                                <i class="fas {% if spending_vs_income.savings.change > 0 %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
+                                {{ spending_vs_income.savings.change }}% vs last month
+                            </small>
+                        </div>
+                        <div class="kpi-icon {% if spending_vs_income.savings.current > 0 %}bg-success-light{% else %}bg-danger-light{% endif %}">
+                            <i class="fas {% if spending_vs_income.savings.current > 0 %}fa-piggy-bank{% else %}fa-exclamation-triangle{% endif %} {% if spending_vs_income.savings.current > 0 %}text-success{% else %}text-danger{% endif %}"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Budget Remaining -->
+        {% if budget_utilization.has_limit %}
+        <div class="col-xl-3 col-md-6">
+            <div class="card kpi-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1">Budget Remaining</p>
+                            <h4 class="fw-bold mb-0" style="color: {{ budget_utilization.color }}">{{ currency_symbol }}{{ budget_utilization.remaining|intcomma }}</h4>
+                            <small class="text-muted">
+                                {{ budget_utilization.days_remaining }} days left
+                            </small>
+                        </div>
+                        <div class="kpi-icon" style="background: {{ budget_utilization.color }}20;">
+                            <i class="fas fa-wallet" style="color: {{ budget_utilization.color }};"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= BUDGET UTILIZATION BAR ================= -->
+    {% if budget_utilization.has_limit %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card budget-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 text-white">Budget Utilization</h6>
+                        <span class="badge" style="background: {{ budget_utilization.color }}; color: white;">
+                            {{ budget_utilization.percentage }}% Used
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 12px;">
+                        <div class="progress-bar" 
+                             style="width: {{ budget_utilization.percentage }}%; background: {{ budget_utilization.color }};">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-white-50">Spent: {{ currency_symbol }}{{ budget_utilization.spent|intcomma }}</small>
+                        <small class="text-white-50">Budget: {{ currency_symbol }}{{ budget_utilization.limit|intcomma }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= AI INSIGHTS PANEL ================= -->
+    {% if ai_insights.insights %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="ai-header-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-robot text-white me-2 fa-2x"></i>
+                        <h5 class="fw-bold text-white mb-0">AI Financial Insights</h5>
+                    </div>
+                    <div class="row g-3">
+                        {% for insight in ai_insights.insights %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="insight-card">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas {{ insight.icon }} me-2 mt-1 fa-lg 
+                                        {% if insight.type == 'success' %}text-success
+                                        {% elif insight.type == 'warning' %}text-warning
+                                        {% elif insight.type == 'danger' %}text-danger
+                                        {% else %}text-info
+                                        {% endif %}">
+                                    </i>
+                                    <small class="text-white">{{ insight.message }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= ADVANCED AI FINANCIAL INSIGHTS ================= -->
+    {% if advanced_ai_insights %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="ai-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div>
+                        <h5 class="section-title mb-0">AI Financial Intelligence</h5>
+                        <small class="text-muted">Advanced analytics powered by machine learning</small>
+                    </div>
+                </div>
+
+                <!-- Financial Health Score (Enhanced) -->
+                {% if advanced_ai_insights.financial_health.score %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-heartbeat text-danger me-2"></i>Financial Health Score</h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="forecast-card text-center">
+                                    <div class="health-score-display">
+                                        <h2 class="fw-bold mb-0" style="color: var(--primary)">{{ advanced_ai_insights.financial_health.score }}</h2>
+                                        <small class="text-muted">{{ advanced_ai_insights.financial_health.grade }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row g-2">
+                                    {% for key, metric in advanced_ai_insights.financial_health.breakdown.items %}
+                                    <div class="col-6">
+                                        <div class="metric-bar">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <small class="text-muted">{{ key|title }}</small>
+                                                <small class="fw-bold">{{ metric.score }}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: {{ metric.score }}%; background: var(--primary);"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <p class="mt-2 mb-0 text-muted small">{{ advanced_ai_insights.financial_health.recommendation }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Cash Flow Forecast -->
+                {% if advanced_ai_insights.cash_flow_forecast.has_data %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-chart-line text-success me-2"></i>Cash Flow Forecast (30 Days)</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="forecast-card text-center">
+                                    <small class="text-muted d-block">Monthly Income</small>
+                                    <h4 class="fw-bold text-success">{{ currency_symbol }}{{ advanced_ai_insights.cash_flow_forecast.monthly_income|intcomma }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="forecast-card text-center">
+                                    <small class="text-muted d-block">Monthly Expenses</small>
+                                    <h4 class="fw-bold text-danger">{{ currency_symbol }}{{ advanced_ai_insights.cash_flow_forecast.monthly_expenses|intcomma }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="forecast-card text-center {% if advanced_ai_insights.cash_flow_forecast.monthly_surplus > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    <small class="text-white-50 d-block">Projected Surplus/Deficit</small>
+                                    <h4 class="fw-bold text-white">
+                                        {{ currency_symbol }}{{ advanced_ai_insights.cash_flow_forecast.monthly_surplus|intcomma }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Spending Trend Prediction -->
+                {% if advanced_ai_insights.spending_trend_prediction.has_data %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-crystal-ball text-info me-2"></i>Spending Trend Prediction</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="forecast-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">Trend Direction</small>
+                                        <span class="badge {% if advanced_ai_insights.spending_trend_prediction.trend == 'increasing' %}bg-danger{% elif advanced_ai_insights.spending_trend_prediction.trend == 'decreasing' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ advanced_ai_insights.spending_trend_prediction.trend|title }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Weekly Average</small>
+                                        <small class="fw-bold">{{ currency_symbol }}{{ advanced_ai_insights.spending_trend_prediction.weekly_average|intcomma }}</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Last Week</small>
+                                        <small class="fw-bold">{{ currency_symbol }}{{ advanced_ai_insights.spending_trend_prediction.last_week_spending|intcomma }}</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <small>Confidence</small>
+                                        <small class="fw-bold">{{ advanced_ai_insights.spending_trend_prediction.confidence }}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="forecast-card">
+                                    <small class="text-muted d-block mb-2">Category Trends</small>
+                                    {% for cat_pred in advanced_ai_insights.spending_trend_prediction.category_predictions|slice:":3" %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>{{ cat_pred.category }}</small>
+                                        <span class="badge {% if cat_pred.predicted_trend == 'increasing' %}bg-warning{% elif cat_pred.predicted_trend == 'decreasing' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {% if cat_pred.change_percent > 0 %}+{% endif %}{{ cat_pred.change_percent }}%
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Anomaly Detection -->
+                {% if advanced_ai_insights.anomaly_detection.has_anomalies %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Unusual Spending Alerts</h6>
+                        <div class="row g-3">
+                            {% for anomaly in advanced_ai_insights.anomaly_detection.anomalies|slice:":3" %}
+                            <div class="col-md-4">
+                                <div class="anomaly-card {% if anomaly.severity == 'high' %}border-danger{% else %}border-warning{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge {% if anomaly.severity == 'high' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ anomaly.severity|title }}
+                                        </span>
+                                        <small class="text-muted">{{ anomaly.date }}</small>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>{{ anomaly.category }}</small>
+                                        <small class="fw-bold">{{ currency_symbol }}{{ anomaly.amount|intcomma }}</small>
+                                    </div>
+                                    <small class="text-muted d-block">{{ anomaly.description }}</small>
+                                    <small class="text-info d-block mt-1">
+                                        <i class="fas fa-info-circle"></i> {{ anomaly.multiplier }}x your typical spending
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Smart Budget Suggestions -->
+                {% if advanced_ai_insights.budget_suggestions.has_suggestions %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-lightbulb text-primary me-2"></i>Smart Budget Suggestions</h6>
+                        <div class="row g-3">
+                            {% for suggestion in advanced_ai_insights.budget_suggestions.suggestions|slice:":3" %}
+                            <div class="col-md-4">
+                                <div class="efficiency-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-primary">{{ suggestion.category|title }}</span>
+                                        <small class="text-muted">{{ suggestion.type|title }}</small>
+                                    </div>
+                                    <small class="text-muted d-block mb-2">{{ suggestion.reason }}</small>
+                                    <div class="d-flex justify-content-between">
+                                        <small>Current: {{ currency_symbol }}{{ suggestion.current|intcomma }}</small>
+                                        <small class="text-success">Suggested: {{ currency_symbol }}{{ suggestion.suggested|intcomma }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Subscription Detection -->
+                {% if advanced_ai_insights.subscriptions.has_subscriptions %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-redo-alt text-purple me-2"></i>Subscription Services</h6>
+                        <div class="subscription-summary forecast-card mb-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Active Subscriptions</small>
+                                    <h5 class="fw-bold">{{ advanced_ai_insights.subscriptions.total_detected }}</h5>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Monthly Total</small>
+                                    <h5 class="fw-bold">{{ currency_symbol }}{{ advanced_ai_insights.subscriptions.monthly_total|intcomma }}</h5>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted d-block">Annual Total</small>
+                                    <h5 class="fw-bold">{{ currency_symbol }}{{ advanced_ai_insights.subscriptions.annual_total|intcomma }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            {% for sub in advanced_ai_insights.subscriptions.subscriptions|slice:":4" %}
+                            <div class="col-md-3 col-6">
+                                <div class="subscription-item">
+                                    <div class="sub-icon">
+                                        <i class="fas fa-play-circle"></i>
+                                    </div>
+                                    <small class="d-block fw-medium">{{ sub.name }}</small>
+                                    <small class="text-muted">{{ currency_symbol }}{{ sub.amount|intcomma }}/{{ sub.frequency }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Merchant Intelligence -->
+                {% if advanced_ai_insights.merchant_intelligence.has_merchants %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-store text-info me-2"></i>Merchant Intelligence</h6>
+                        <div class="row g-3">
+                            {% for merchant in advanced_ai_insights.merchant_intelligence.top_merchants|slice:":4" %}
+                            <div class="col-md-3 col-6">
+                                <div class="merchant-card text-center">
+                                    <small class="d-block fw-medium text-truncate">{{ merchant.name }}</small>
+                                    <small class="text-muted">{{ merchant.transaction_count }} transactions</small>
+                                    <div class="mt-1">
+                                        <small class="fw-bold text-danger">{{ currency_symbol }}{{ merchant.total_spent|intcomma }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Goal Achievement Prediction -->
+                {% if advanced_ai_insights.goal_predictions.has_goals %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-bullseye text-success me-2"></i>Goal Achievement Predictions</h6>
+                        <div class="row g-3">
+                            {% for goal in advanced_ai_insights.goal_predictions.predictions|slice:":3" %}
+                            <div class="col-md-4">
+                                <div class="goal-card">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <small class="fw-bold">{{ goal.name }}</small>
+                                        <span class="badge {% if goal.on_track %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if goal.on_track %}On Track{% else %}At Risk{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="progress mb-2" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: {{ goal.progress }}%;"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">{{ goal.progress }}% complete</small>
+                                        {% if goal.projected_date %}
+                                        <small class="text-info">{{ goal.projected_date }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Debt Risk Indicator -->
+                {% if advanced_ai_insights.debt_risk.has_debts %}
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-shield-alt text-warning me-2"></i>Debt Risk Assessment</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="risk-card text-center {% if advanced_ai_insights.debt_risk.risk_level == 'low' %}bg-success{% elif advanced_ai_insights.debt_risk.risk_level == 'medium' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    <small class="text-white-50 d-block">Risk Level</small>
+                                    <h4 class="fw-bold text-white text-uppercase">{{ advanced_ai_insights.debt_risk.risk_level }}</h4>
+                                    <small class="text-white-50">Score: {{ advanced_ai_insights.debt_risk.risk_score }}/100</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="forecast-card text-center">
+                                    <small class="text-muted d-block">DTI Ratio</small>
+                                    <h4 class="fw-bold">{{ advanced_ai_insights.debt_risk.dti_ratio }}%</h4>
+                                    <small class="text-muted">Debt-to-Income</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="forecast-card text-center">
+                                    <small class="text-muted d-block">Total Debt</small>
+                                    <h4 class="fw-bold">{{ currency_symbol }}{{ advanced_ai_insights.debt_risk.total_debt|intcomma }}</h4>
+                                    <small class="text-muted">Remaining Balance</small>
+                                </div>
+                            </div>
+                            {% if advanced_ai_insights.debt_risk.recommendations %}
+                            <div class="col-12">
+                                <div class="forecast-card">
+                                    <small class="text-muted d-block mb-2">Recommendations:</small>
+                                    {% for rec in advanced_ai_insights.debt_risk.recommendations %}
+                                    <div class="alert alert-info py-2 mb-1">
+                                        <small><i class="fas fa-check-circle text-success me-1"></i> {{ rec }}</small>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Spending Efficiency Insights -->
+                {% if advanced_ai_insights.efficiency_insights.has_insights %}
+                <div class="row g-4">
+                    <div class="col-12">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-rocket text-info me-2"></i>Spending Efficiency Insights</h6>
+                        <div class="row g-3">
+                            {% for insight in advanced_ai_insights.efficiency_insights.insights|slice:":4" %}
+                            <div class="col-md-6">
+                                <div class="efficiency-card">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas {{ insight.icon }} text-primary me-2 mt-1"></i>
+                                        <div>
+                                            <small class="fw-bold d-block">{{ insight.title }}</small>
+                                            <small class="text-muted">{{ insight.description }}</small>
+                                            {% if insight.potential_savings %}
+                                            <div class="mt-2">
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-piggy-bank me-1"></i>Save {{ currency_symbol }}{{ insight.potential_savings|intcomma }}/mo
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if advanced_ai_insights.efficiency_insights.total_potential_savings %}
+                            <div class="col-12">
+                                <div class="total-savings-card">
+                                    <small class="text-white-50 d-block">Total Potential Monthly Savings</small>
+                                    <h3 class="fw-bold text-white">{{ currency_symbol }}{{ advanced_ai_insights.efficiency_insights.total_potential_savings|intcomma }}</h3>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================= SAVINGS GOALS & ACTIVITY TIMELINE ================= -->
+    <div class="row g-4 mb-4">
+        <!-- Savings Goals -->
+        <div class="col-lg-4">
+            <div class="savings-card h-100">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-bullseye me-2"></i>Savings Goals</h6>
+                        <a href="{% url 'goals' %}" class="btn btn-sm btn-light">View All</a>
+                    </div>
+                    {% if savings_goals.has_goals %}
+                        {% for goal in savings_goals.goals %}
+                        <div class="goal-item mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-medium">{{ goal.name }}</span>
+                                <small>{{ goal.progress }}%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: {{ goal.progress }}%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small>{{ currency_symbol }}{{ goal.current|intcomma }} / {{ currency_symbol }}{{ goal.target|intcomma }}</small>
+                                {% if goal.days_remaining %}
+                                <small>{{ goal.days_remaining }} days left</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-bullseye fa-2x mb-2 opacity-50"></i>
+                        <p class="mb-0 small">No active goals</p>
+                        <a href="{% url 'goals' %}" class="btn btn-sm btn-light mt-2">Create Goal</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="col-lg-8">
+            <div class="timeline-card h-100">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+                        <a href="{% url 'dashboard' %}" class="btn btn-sm btn-light">View All</a>
+                    </div>
+                    {% if activity_timeline.has_activities %}
+                    <div class="activity-timeline">
+                        {% for activity in activity_timeline.activities %}
+                        <div class="timeline-item">
+                            <div class="d-flex align-items-start">
+                                <div class="timeline-icon me-3">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-medium">{{ activity.category }}</span>
+                                            <small class="text-white-50 d-block">{{ activity.description }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold text-danger">-{{ currency_symbol }}{{ activity.amount|intcomma }}</span>
+                                            <small class="text-white-50 d-block">{{ activity.time_label }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-history fa-2x mb-2 opacity-50"></i>
+                        <p class="mb-0 small">No recent activity</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PREDICTION CARDS ================= -->
+    {% if predictions.has_data or predictions.is_estimate %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <h6 class="fw-bold mb-3">
+                Spending Predictions
+                {% if predictions.is_estimate %}
+                <small class="text-muted fw-normal">(Based on typical spending patterns)</small>
+                {% endif %}
+            </h6>
+        </div>
+        <!-- Today -->
+        <div class="col-xl-3 col-md-6">
+            <div class="prediction-card today text-center">
+                <h6 class="text-white-50">Today</h6>
+                <h3 class="fw-bold text-white mt-2">{{ currency_symbol }}{{ predictions.today|intcomma }}</h3>
+                <small class="text-white-50">
+                    <i class="fas fa-arrow-up"></i> Predicted
+                </small>
+            </div>
+        </div>
+        <!-- Tomorrow -->
+        <div class="col-xl-3 col-md-6">
+            <div class="prediction-card tomorrow text-center">
+                <h6 class="text-white-50">Tomorrow</h6>
+                <h3 class="fw-bold text-white mt-2">{{ currency_symbol }}{{ predictions.tomorrow|intcomma }}</h3>
+                <small class="text-white-50">
+                    <i class="fas fa-arrow-right"></i> Expected
+                </small>
+            </div>
+        </div>
+        <!-- Week -->
+        <div class="col-xl-3 col-md-6">
+            <div class="prediction-card week text-center">
+                <h6 class="text-white-50">This Week</h6>
+                <h3 class="fw-bold text-white mt-2">{{ currency_symbol }}{{ predictions.this_week|intcomma }}</h3>
+                <small class="text-white-50">
+                    <i class="fas fa-chart-line"></i> Rolling average
+                </small>
+            </div>
+        </div>
+        <!-- Month -->
+        <div class="col-xl-3 col-md-6">
+            <div class="prediction-card month text-center">
+                <h6 class="text-white-50">This Month</h6>
+                <h3 class="fw-bold text-white mt-2">{{ currency_symbol }}{{ predictions.this_month|intcomma }}</h3>
+                <small class="text-white-50">
+                    <i class="fas fa-exclamation-circle"></i> Projected
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+// Chart.js configuration (keeping only for potential future use)
+const chartColors = {
+    primary: '#4e73df',
+    success: '#1cc88a',
+    warning: '#f6c23e',
+    danger: '#e74a3b',
+    info: '#36b9cc',
+    purple: '#6f42c1',
+    dark: '#5a5c69'
+};
+
+// Refresh dashboard
+function refreshDashboard() {
+    location.reload();
+}
+
+// Animate health score circle
+document.querySelectorAll('.health-score-circle').forEach(circle => {
+    const score = parseInt(circle.dataset.score);
+    
+    // Set color based on score
+    let color;
+    if (score >= 80) color = '#1cc88a';
+    else if (score >= 60) color = '#f6c23e';
+    else color = '#e74a3b';
+    
+    circle.style.background = `conic-gradient(${color} ${score}%, rgba(255,255,255,0.2) ${score}%)`;
+});
+
+// Add floating animation to icons
+document.querySelectorAll('.kpi-icon i, .section-icon i, .timeline-icon i').forEach(icon => {
+    icon.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.2) rotate(5deg)';
+    });
+    icon.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1) rotate(0)';
+    });
+});
+
+// Add pulse animation to cards on hover
+document.querySelectorAll('.kpi-card, .forecast-card, .anomaly-card, .goal-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.animation = 'pulse 1s';
+    });
+    card.addEventListener('mouseleave', function() {
+        this.style.animation = '';
+    });
+});
+
+// Intersection Observer for scroll animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.ai-section, .prediction-card, .goal-item, .timeline-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+});
+</script>
+{% endblock %}

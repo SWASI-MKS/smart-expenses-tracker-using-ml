@@ -1,0 +1,81 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>👥 Beneficiaries</h1>
+</div>
+
+<!-- Add Beneficiary Form -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-user-plus"></i> Add New Beneficiary
+    </div>
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" name="name" class="form-input" placeholder="Recipient Name" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Account Number</label>
+                <input type="text" name="account_number" class="form-input" placeholder="Account Number">
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="form-label">UPI ID</label>
+                <input type="text" name="upi_id" class="form-input" placeholder="name@upi">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="text" name="phone" class="form-input" placeholder="Phone Number">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Beneficiary
+        </button>
+    </form>
+</div>
+
+<!-- Beneficiary List -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-users"></i> Saved Beneficiaries
+    </div>
+    {% if beneficiaries %}
+        {% for b in beneficiaries %}
+        <div class="transaction-item">
+            <div class="transaction-icon" style="background: #dbeafe; color: #2563eb;">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">
+                    {{ b.name }}
+                    {% if b.is_verified %}<span class="status-badge success" style="margin-left: 8px;">Verified</span>{% endif %}
+                </div>
+                <div class="transaction-subtitle">
+                    {% if b.upi_id %}{{ b.upi_id }}{% endif %}
+                    {% if b.account_number %} ****{{ b.account_number|slice:"-4:" }}{% endif %}
+                    {% if b.phone %} • {{ b.phone }}{% endif %}
+                </div>
+            </div>
+            <form method="POST" action="{% url 'delete-beneficiary' %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="beneficiary_id" value="{{ b.id }}">
+                <button type="submit" class="btn btn-danger" style="padding: 8px 16px; font-size: 12px;" 
+                        onclick="return confirm('Remove this beneficiary?')">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-users"></i>
+        <p>No beneficiaries added yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

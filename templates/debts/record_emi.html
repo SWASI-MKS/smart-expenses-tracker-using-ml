@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-rupee-sign me-2"></i>Record EMI Payment
+            </h2>
+            <p class="text-muted mb-0">Record payment for: {{ debt.loan_name }}</p>
+        </div>
+        <a href="{% url 'debt-detail' debt.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Details
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">EMI Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Due Date *</label>
+                                {{ form.due_date }}
+                                {% if form.due_date.errors %}
+                                <div class="text-danger small">{{ form.due_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Amount (₹) *</label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                <div class="text-danger small">{{ form.amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    {{ form.is_paid }}
+                                    <label class="form-check-label" for="id_is_paid">
+                                        Mark as Paid
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Paid Date</label>
+                                {{ form.paid_date }}
+                                {% if form.paid_date.errors %}
+                                <div class="text-danger small">{{ form.paid_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger small">{{ form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'debt-detail' debt.id %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Record Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">Loan Summary</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td class="text-muted">Loan Name</td>
+                            <td><strong>{{ debt.loan_name }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Monthly EMI</td>
+                            <td>₹{{ debt.emi_amount|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Remaining</td>
+                            <td>₹{{ debt.remaining_balance|intcomma }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">EMIs Left</td>
+                            <td>{{ debt.emi_remaining }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body bg-info-light">
+                    <p class="small mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        The principal and interest portions will be automatically calculated based on the current balance and interest rate.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-info-light {
+    background: #dbeafe;
+    border-radius: 8px;
+}
+/* Dark Mode */
+body.dark .bg-info-light {
+    background: rgba(59, 130, 246, 0.2);
+}
+</style>
+{% endblock %}
+

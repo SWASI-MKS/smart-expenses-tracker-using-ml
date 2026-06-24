@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                <i class="fas fa-credit-card me-2"></i>All Debts
+            </h2>
+            <p class="text-muted mb-0">View and manage all your loans</p>
+        </div>
+        <a href="{% url 'add-debt' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Debt
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-danger-light">
+                            <i class="fas fa-wallet text-danger"></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0">Total Debt</p>
+                            <h4 class="mb-0">₹{{ total_debt|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-warning-light">
+                            <i class="fas fa-calendar-alt text-warning"></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0">Monthly EMI</p>
+                            <h4 class="mb-0">₹{{ total_emi_monthly|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-info-light">
+                            <i class="fas fa-chart-line text-info"></i>
+                        </div>
+                        <div class="ms-3">
+                            <p class="text-muted mb-0">Remaining Balance</p>
+                            <h4 class="mb-0">₹{{ total_remaining|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debts Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header py-3">
+            <h5 class="mb-0">Your Debts</h5>
+        </div>
+        <div class="card-body">
+            {% if debts %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Loan Name</th>
+                            <th>Type</th>
+                            <th>Principal</th>
+                            <th>Interest Rate</th>
+                            <th>EMI</th>
+                            <th>Remaining</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for debt in debts %}
+                        <tr>
+                            <td>
+                                <strong>{{ debt.loan_name }}</strong>
+                                {% if debt.lender_name %}<br><small class="text-muted">{{ debt.lender_name }}</small>{% endif %}
+                            </td>
+                            <td>{{ debt.get_loan_type_display }}</td>
+                            <td>₹{{ debt.principal_amount|intcomma }}</td>
+                            <td>{{ debt.interest_rate }}%</td>
+                            <td>₹{{ debt.emi_amount|intcomma }}</td>
+                            <td>₹{{ debt.remaining_balance|intcomma }}</td>
+                            <td>
+                                {% if debt.status == 'ACTIVE' %}
+                                <span class="badge bg-success">Active</span>
+                                {% elif debt.status == 'PAID_OFF' %}
+                                <span class="badge bg-info">Paid Off</span>
+                                {% elif debt.status == 'DEFAULTED' %}
+                                <span class="badge bg-danger">Defaulted</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ debt.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'debt-detail' debt.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'edit-debt' debt.id %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'record-emi' debt.id %}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5>No Debts Found</h5>
+                <p class="text-muted">You haven't added any debts yet.</p>
+                <a href="{% url 'add-debt' %}" class="btn btn-primary">Add Your First Debt</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+.bg-danger-light { background: #fee2e2; }
+.bg-warning-light { background: #fef3c7; }
+.bg-info-light { background: #dbeafe; }
+</style>
+{% endblock %}
+

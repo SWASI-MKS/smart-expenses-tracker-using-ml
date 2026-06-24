@@ -1,0 +1,184 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>🏦 Bank Dashboard</h1>
+    <a href="{% url 'alerts' %}" class="btn btn-primary">
+        <i class="fa-solid fa-bell"></i> Alerts 
+        {% if unread_alerts %}<span class="badge">{{ unread_alerts|length }}</span>{% endif %}
+    </a>
+</div>
+<br>
+<!-- Balance Card -->
+<div class="balance-card">
+    <div class="balance-label">Available Balance</div>
+    <div class="balance-amount">₹ {{ account.balance }}</div>
+    <div class="balance-account">Account: {{ account.account_number }}</div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a href="{% url 'send-money' %}" class="quick-action">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Send Money</span>
+    </a>
+    <a href="#" class="quick-action" id="addMoneyBtn">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Money</span>
+    </a>
+    <a href="{% url 'cards-view' %}" class="quick-action">
+        <i class="fa-solid fa-credit-card"></i>
+        <span>My Cards</span>
+    </a>
+    <a href="{% url 'transaction-history' %}" class="quick-action">
+        <i class="fa-solid fa-list"></i>
+        <span>History</span>
+    </a>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid" style="margin-bottom: 24px;">
+    <div class="stat-item">
+        <div class="stat-value">₹ {{ monthly_summary.total_credit|default:"0" }}</div>
+        <div class="stat-label">This Month Income</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value" style="color: #dc2626;">₹ {{ monthly_summary.total_debit|default:"0" }}</div>
+        <div class="stat-label">This Month Spending</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value">{{ monthly_summary.card_transactions|default:"0" }}</div>
+        <div class="stat-label">Card Transactions</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value">₹ {{ net_worth.net_worth }}</div>
+        <div class="stat-label">Net Worth</div>
+    </div>
+</div>
+
+<!-- Credit Utilization -->
+{% if cards_utilization %}
+<div class="section-card" id="credit">
+    <div class="section-title">
+        <i class="fa-solid fa-chart-pie"></i> Credit Card Utilization
+    </div>
+    {% for card_util in cards_utilization %}
+        {% if card_util.credit_limit %}
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <strong>{{ card_util.card.card_name }}</strong>
+                <span>{{ card_util.utilization }}%</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill {% if card_util.utilization >= 80 %}danger{% elif card_util.utilization >= 50 %}warning{% endif %}" 
+                         style="width: {{ card_util.utilization }}%"></div>
+                </div>
+            </div>
+            <div class="stat-label">₹{{ card_util.total_spent }} of ₹{{ card_util.credit_limit }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+    
+    <!-- Add Credit Modal -->
+    <div id="creditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+        <div style="background:var(--card); padding:24px; border-radius:12px; max-width:400px; width:90%;">
+            <h3>Add Money to Account</h3>
+            <form method="POST" action="{% url 'bank-dashboard' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" name="amount" step="0.01" min="1" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" name="description" placeholder="e.g. Salary, Freelance work" class="form-input" required>
+                </div>
+                <input type="hidden" name="transaction_type" value="CREDIT">
+                <button type="submit" class="btn btn-success btn-block">Add Money</button>
+                <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('creditModal').style.display='none'" style="margin-top:8px;">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Transactions -->
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-clock"></i> Recent Transactions
+        <a href="{% url 'transaction-history' %}" style="margin-left:auto; font-size:13px; font-weight:normal;">View All →</a>
+    </div>
+    
+    {% if bank_transactions or transfers %}
+    <div style="max-height: 300px; overflow-y: auto;">
+        <!-- Bank Transactions -->
+        {% for tx in bank_transactions|slice:":5" %}
+        <div class="transaction-item">
+            <div class="transaction-icon {% if tx.transaction_type == 'CREDIT' %}credit{% else %}debit{% endif %}">
+                <i class="fa-solid {% if tx.transaction_type == 'CREDIT' %}fa-arrow-down{% else %}fa-arrow-up{% endif %}"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">{{ tx.description }}</div>
+                <div class="transaction-subtitle">{{ tx.created_at|date:"d M Y, H:i" }}</div>
+            </div>
+            <div class="transaction-amount {% if tx.transaction_type == 'CREDIT' %}credit{% else %}debit{% endif %}">
+                {% if tx.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}₹ {{ tx.amount }}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Transfers -->
+        {% for transfer in transfers|slice:":5" %}
+        <div class="transaction-item">
+            <div class="transaction-icon debit">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">Sent to {{ transfer.beneficiary.name|default:transfer.receiver_name }}</div>
+                <div class="transaction-subtitle">{{ transfer.created_at|date:"d M Y, H:i" }} • {{ transfer.transaction_id }}</div>
+            </div>
+            <div class="transaction-amount debit">
+                -₹ {{ transfer.amount }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-receipt"></i>
+        <p>No transactions yet</p>
+        <a href="{% url 'send-money' %}" class="btn btn-primary">Send Money</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Alerts -->
+{% if unread_alerts %}
+<div class="section-card">
+    <div class="section-title">
+        <i class="fa-solid fa-bell"></i> Recent Alerts
+        <a href="{% url 'alerts' %}" style="margin-left:auto; font-size:13px; font-weight:normal;">View All →</a>
+    </div>
+    {% for alert in unread_alerts|slice:":3" %}
+    <div class="transaction-item">
+        <div class="transaction-icon" style="background: #fef3c7; color: #f59e0b;">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+        </div>
+        <div class="transaction-details">
+            <div class="transaction-title">{{ alert.title }}</div>
+            <div class="transaction-subtitle">{{ alert.message }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+document.getElementById('addMoneyBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('creditModal').style.display = 'flex';
+});
+</script>
+{% endblock %}
+

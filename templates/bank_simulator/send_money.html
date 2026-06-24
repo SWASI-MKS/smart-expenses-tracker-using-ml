@@ -1,0 +1,285 @@
+{% extends "bank_simulator/bank_base.html" %}
+
+{% block bank_content %}
+<div class="bank-header">
+    <h1>📤 Send Money</h1>
+    <a href="{% url 'bank-dashboard' %}" class="btn btn-secondary">← Back</a>
+</div>
+<br>
+<!-- Balance Display -->
+<div class="balance-card">
+    <div class="balance-label">Available Balance</div>
+    <div class="balance-amount">₹ {{ account.balance }}</div>
+</div>
+
+<!-- Step Indicator -->
+<div class="tabs" style="margin-bottom: 20px;">
+    <div class="tab active">1. Recipient</div>
+    <div class="tab">2. Amount</div>
+    <div class="tab">3. Confirm</div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div style="background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+            {{ message }}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<form method="POST" class="section-card" id="sendMoneyForm">
+    {% csrf_token %}
+    
+    <!-- Select Beneficiary -->
+    <div class="section-title">
+        <i class="fa-solid fa-user"></i> Select Recipient
+    </div>
+    
+    {% if beneficiaries %}
+    <div style="margin-bottom: 20px;">
+        {% for b in beneficiaries %}
+        <label class="transaction-item" style="cursor: pointer;">
+            <input type="radio" name="beneficiary_id" value="{{ b.id }}" required style="margin-right: 12px;">
+            <div class="transaction-icon" style="background: #dbeafe; color: #2563eb;">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-title">{{ b.name }}</div>
+                <div class="transaction-subtitle">
+                    {% if b.upi_id %}{{ b.upi_id }}{% else %}****{{ b.account_number|slice:"-4:" }}{% endif %}
+                </div>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--muted); margin-bottom: 20px;">No saved beneficiaries. Add one below.</p>
+    {% endif %}
+    
+    <!-- Add New Beneficiary -->
+    <details style="margin-bottom: 20px;">
+        <summary style="cursor: pointer; color: var(--primary); font-weight: 600;">+ Add New Beneficiary</summary>
+        <div style="padding: 16px; background: var(--bg); border-radius: 8px; margin-top: 12px;">
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" name="new_name" class="form-input" placeholder="Recipient Name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Account Number</label>
+                <input type="text" name="new_account" class="form-input" placeholder="Account Number">
+            </div>
+            <div class="form-group">
+                <label class="form-label">UPI ID (optional)</label>
+                <input type="text" name="new_upi" class="form-input" placeholder="name@upi">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone (optional)</label>
+                <input type="text" name="new_phone" class="form-input" placeholder="Phone Number">
+            </div>
+            <button type="submit" name="add_beneficiary" class="btn btn-success">
+                <i class="fa-solid fa-plus"></i> Add Beneficiary
+            </button>
+        </div>
+    </details>
+    
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 24px 0;">
+    
+    <!-- Enter Amount -->
+    <div class="section-title">
+        <i class="fa-solid fa-indian-rupee-sign"></i> Enter Amount
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input type="number" name="amount" id="id_amount" step="0.01" min="1" class="form-input" 
+               style="font-size: 24px; text-align: center; padding: 20px;" placeholder="0.00" required>
+    </div>
+    
+    <!-- Description Field (Enhanced) -->
+    <div class="form-group">
+        <label class="form-label">
+            <i class="fa-solid fa-align-left"></i> Description / Note
+            <span style="font-weight: normal; color: var(--muted); font-size: 0.85rem;">(Auto-categorize expense)</span>
+        </label>
+        <textarea name="note" id="id_note" class="form-input" rows="3" 
+                  placeholder="e.g., Lunch at restaurant, Uber ride, Electricity bill, Netflix subscription, Amazon purchase..."></textarea>
+        <small style="color: var(--muted); font-size: 0.8rem;">
+            Enter a description to automatically detect the expense category
+        </small>
+        
+        <!-- Category Preview -->
+        <div id="categoryPreview" style="margin-top: 12px; display: none;">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                <div id="categoryIcon" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                    <i class="fa-solid fa-tag"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.75rem; color: var(--muted);">Detected Category</div>
+                    <div id="categoryName" style="font-weight: 600; font-size: 1rem;">-</div>
+                </div>
+                <div id="categoryBadge" style="padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; color: white;">
+                    Auto-detected
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-block" style="padding: 16px;" id="submitBtn">
+        <i class="fa-solid fa-arrow-right"></i> Proceed to Send
+    </button>
+</form>
+
+<!-- Category Detection Script -->
+<script>
+    // Category colors mapping (must match Django template tags)
+    const categoryColors = {
+        'Food & Dining': '#FF6B6B',
+        'Transportation': '#4ECDC4',
+        'Shopping': '#FFD93D',
+        'Entertainment': '#9B59B6',
+        'Bills & Utilities': '#3498DB',
+        'Healthcare': '#E67E22',
+        'Education': '#2ECC71',
+        'Travel': '#1ABC9C',
+        'Housing': '#E74C3C',
+        'Groceries': '#F39C12',
+        'EMI & Loans': '#8E44AD',
+        'Insurance': '#2980B9',
+        'Utilities': '#7F8C8D',
+        'Subscriptions': '#C0392B',
+        'Personal Care': '#884EA0',
+        'Other': '#95A5A6'
+    };
+    
+    // Category icons mapping
+    const categoryIcons = {
+        'Food & Dining': 'fa-utensils',
+        'Transportation': 'fa-car',
+        'Shopping': 'fa-shopping-cart',
+        'Entertainment': 'fa-film',
+        'Bills & Utilities': 'fa-file-invoice',
+        'Healthcare': 'fa-hospital',
+        'Education': 'fa-graduation-cap',
+        'Travel': 'fa-plane',
+        'Housing': 'fa-home',
+        'Groceries': 'fa-shopping-basket',
+        'EMI & Loans': 'fa-hand-holding-usd',
+        'Insurance': 'fa-shield-alt',
+        'Utilities': 'fa-bolt',
+        'Subscriptions': 'fa-calendar-check',
+        'Personal Care': 'fa-smile',
+        'Other': 'fa-tag'
+    };
+    
+    // Category keywords for client-side detection
+    const categoryKeywords = {
+        'Food & Dining': ['restaurant', 'cafe', 'dinner', 'lunch', 'breakfast', 'food', 'meal', 'groceries', 'coffee', 'tea', 'snack', 'pizza', 'burger', 'sushi', 'zomato', 'swiggy', 'mcdonald', 'kfc', 'starbucks', 'domino', 'bakery', 'dining', 'eat', 'mess', 'canteen', 'food delivery', 'pizza hut', 'subway', 'burger king', 'swiggy', 'zomato', 'grocery', 'supermarket', 'big basket', 'grofers'],
+        'Transportation': ['uber', 'ola', 'taxi', 'bus', 'metro', 'train', 'flight', 'fuel', 'petrol', 'diesel', 'gas', 'parking', 'toll', 'auto', 'rickshaw', 'cab', 'ride', 'transport', 'commute', 'travel', 'airport', 'railway', 'rapido', 'zoomcar', 'drivezy', 'uber', 'ola', 'lyft', 'metro', 'subway', 'fastag'],
+        'Shopping': ['amazon', 'flipkart', 'myntra', 'clothes', 'dress', 'shirt', 'shoes', 'electronics', 'phone', 'laptop', 'gadget', 'book', 'stationery', 'mall', 'market', 'purchase', 'buy', 'order', 'shopping', 'ajio', 'nykaa', 'snapdeal', 'clothing', 'fashion', 'mobile', 'store', 'shop'],
+        'Entertainment': ['movie', 'cinema', 'theatre', 'concert', 'show', 'game', 'sports', 'netflix', 'prime', 'disney', 'hotstar', 'youtube', 'spotify', 'music', 'party', 'event', 'pvr', 'inox', 'bookmyshow', 'netflix', 'spotify', 'movies', 'gaming', 'playstation', 'xbox', 'steam'],
+        'Bills & Utilities': ['electricity', 'water', 'gas', 'internet', 'wifi', 'mobile', 'phone bill', 'rent', 'emi', 'loan', 'insurance', 'subscription', 'utility', 'maintenance', 'society', 'bsnl', 'airtel', 'jio', 'tata sky', 'electricity bill', 'power', 'water bill', 'broadband', 'recharge', 'prepaid', 'postpaid'],
+        'Healthcare': ['pharmacy', 'medical', 'hospital', 'clinic', 'doctor', 'apollo', 'medicine', 'drug', 'test', 'lab', 'diagnostic', 'health', 'wellness', 'fortis', 'max', 'manipal', 'pharmeasy', 'netmeds', '1mg', 'practo', 'hospital', 'doctor', 'medicine', 'pharmacy', 'lab', 'test', 'diagnosis', 'dental', 'dentist', 'health insurance'],
+        'Education': ['school', 'college', 'university', 'tuition', 'coaching', 'course', 'books', 'stationery', 'fees', 'exam', 'training', 'byju', 'vedantu', 'unacademy', 'coursera', 'udemy', 'aakash', 'fiitjee', 'allen', 'school fees', 'college fees', 'tuition', 'coaching', 'class', 'online course', 'textbook', 'notebook'],
+        'Travel': ['hotel', 'resort', 'airbnb', 'oyo', 'booking', 'goibibo', 'cleartrip', 'flight', 'train', 'bus', 'travel', 'tour', 'package', 'holiday', 'vacation', 'trip', 'sightseeing', 'hotel', 'resestay', 'ort', 'homoyo rooms', 'makemytrip', 'air ticket', 'visa', 'passport']
+    };
+    
+    function detectCategory(description) {
+        if (!description || description.trim() === '') {
+            return 'Other';
+        }
+        
+        const descLower = description.toLowerCase().trim();
+        
+        // Check each category's keywords
+        for (const [category, keywords] of Object.entries(categoryKeywords)) {
+            for (const keyword of keywords) {
+                if (descLower.includes(keyword.toLowerCase())) {
+                    return category;
+                }
+            }
+        }
+        
+        return 'Other';
+    }
+    
+    function updateCategoryPreview() {
+        const noteField = document.getElementById('id_note');
+        const categoryPreview = document.getElementById('categoryPreview');
+        const categoryName = document.getElementById('categoryName');
+        const categoryBadge = document.getElementById('categoryBadge');
+        const categoryIcon = document.getElementById('categoryIcon');
+        
+        if (!noteField || !categoryPreview) return;
+        
+        const description = noteField.value;
+        
+        if (description && description.trim().length > 0) {
+            const category = detectCategory(description);
+            const color = categoryColors[category] || categoryColors['Other'];
+            const icon = categoryIcons[category] || categoryIcons['Other'];
+            
+            categoryName.textContent = category;
+            categoryBadge.style.backgroundColor = color;
+            categoryIcon.style.backgroundColor = color + '20'; // 20% opacity
+            categoryIcon.style.color = color;
+            categoryIcon.innerHTML = '<i class="fa-solid ' + icon + '"></i>';
+            categoryPreview.style.display = 'block';
+        } else {
+            categoryPreview.style.display = 'none';
+        }
+    }
+    
+    // Add event listener for real-time category detection
+    document.addEventListener('DOMContentLoaded', function() {
+        const noteField = document.getElementById('id_note');
+        if (noteField) {
+            noteField.addEventListener('input', updateCategoryPreview);
+            noteField.addEventListener('paste', function() {
+                setTimeout(updateCategoryPreview, 100);
+            });
+        }
+        
+        // Form validation
+        const form = document.getElementById('sendMoneyForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const amount = document.getElementById('id_amount').value;
+                const beneficiary = document.querySelector('input[name="beneficiary_id"]:checked');
+                
+                if (!beneficiary) {
+                    e.preventDefault();
+                    alert('Please select a beneficiary');
+                    return false;
+                }
+                
+                if (!amount || parseFloat(amount) <= 0) {
+                    e.preventDefault();
+                    alert('Please enter a valid amount');
+                    return false;
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    #categoryPreview {
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
