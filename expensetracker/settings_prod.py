@@ -53,13 +53,38 @@ DATABASES = {
 }
 
 
-# Cache - Use Redis in production
+# Cache - Use Redis in production (with django-redis backend to support CLIENT_CLASS)
+redis_url = os.getenv('REDIS_URL')
+if not redis_url:
+    redis_host = os.getenv('REDISHOST', os.getenv('REDIS_HOST', '127.0.0.1'))
+    redis_port = os.getenv('REDISPORT', os.getenv('REDIS_PORT', '6379'))
+    redis_password = os.getenv('REDISPASSWORD', '')
+    redis_user = os.getenv('REDISUSER', '')
+    
+    if redis_password:
+        if redis_user:
+            redis_url = f"redis://{redis_user}:{redis_password}@{redis_host}:{redis_port}/1"
+        else:
+            redis_url = f"redis://default:{redis_password}@{redis_host}:{redis_port}/1"
+    else:
+        redis_url = f"redis://{redis_host}:{redis_port}/1"
+
+# Ensure protocol=2 is appended to the Redis URL to prevent 'HELLO' command handshake issues
+if '?' in redis_url:
+    if 'protocol=' not in redis_url:
+        redis_url += '&protocol=2'
+else:
+    redis_url += '?protocol=2'
+
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': f"redis://{os.getenv('REDIS_HOST', '127.0.0.1')}:{os.getenv('REDIS_PORT', '6379')}/1",
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': redis_url,
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'protocol': 2,
+            }
         },
         'KEY_PREFIX': 'expense_tracker',
         'TIMEOUT': 300,
@@ -67,8 +92,18 @@ CACHES = {
 }
 
 # Celery Configuration
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+celery_redis_url = os.getenv('REDIS_URL')
+if celery_redis_url:
+    # Ensure celery uses database 0
+    if celery_redis_url.endswith('/1'):
+        celery_redis_url = celery_redis_url[:-2] + '/0'
+    elif not celery_redis_url.endswith('/0'):
+        celery_redis_url = celery_redis_url.rstrip('/') + '/0'
+else:
+    celery_redis_url = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+
+CELERY_BROKER_URL = celery_redis_url
+CELERY_RESULT_BACKEND = celery_redis_url
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
